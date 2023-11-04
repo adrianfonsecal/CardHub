@@ -1,29 +1,17 @@
 package com.example.cardhubapp;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 
-import com.example.cardhubapp.model.User;
-import com.google.gson.Gson;
 
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Map;
+public class LogInController extends AppCompatActivity implements View.OnClickListener  {
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener  {
-
-   @Override
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -54,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void logIn(String email, String password){
-        AsyncTaskLogIn asyncTaskLogIn = new AsyncTaskLogIn(email, password);
+        AsyncTaskOperator asyncTaskLogIn = new AsyncTaskOperator("http://10.0.2.2:8000/login/");
         asyncTaskLogIn.execute(email, password);
 
     }
