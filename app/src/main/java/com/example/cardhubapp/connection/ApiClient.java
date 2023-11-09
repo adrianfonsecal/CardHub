@@ -1,4 +1,4 @@
-package com.example.cardhubapp;
+package com.example.cardhubapp.connection;
 
 import com.google.gson.Gson;
 
