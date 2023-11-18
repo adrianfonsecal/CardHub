@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".LogInController">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
     <EditText
         android:id="@+id/passwordField"
@@ -102,6 +111,7 @@
 
         <ImageView
             android:layout_width="match_parent"
+            android:layout_marginTop="51dp"
             android:layout_height="300dp"
             android:layout_weight="4"
             android:src="@drawable/logo" />

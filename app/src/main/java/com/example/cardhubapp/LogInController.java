@@ -39,6 +39,10 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
             EditText passwordFieldObtained = findViewById(R.id.passwordField);
             String userPassword = passwordFieldObtained.getText().toString();
             logIn(userEmail, userPassword);
+
+            Intent intent = new Intent(this, HomeController.class);
+            startActivity(intent);
+
         }
 
     }
