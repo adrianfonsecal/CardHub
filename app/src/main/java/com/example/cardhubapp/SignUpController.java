@@ -1,11 +1,12 @@
 package com.example.cardhubapp;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.cardhubapp.connection.asyncronous.AsyncTaskOperator;
 
 public class SignUpController extends AppCompatActivity implements View.OnClickListener{
 
@@ -30,10 +31,10 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
             EditText passwordField = findViewById(R.id.passwordField);
             String userPassword =  passwordField.getText().toString();
 
-            createUser(userName, userEmail, userPassword);
+            signUp(userName, userEmail, userPassword);
     }
 }
-    private void createUser(String name, String email, String password) {
+    private void signUp(String name, String email, String password) {
         AsyncTaskOperator asyncTaskSignUp = new AsyncTaskOperator("http://10.0.2.2:8000/signup/");
         asyncTaskSignUp.execute(name, email, password);
 

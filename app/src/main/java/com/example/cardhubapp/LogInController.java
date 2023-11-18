@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.cardhubapp.connection.asyncronous.AsyncTaskOperator;
+
 
 public class LogInController extends AppCompatActivity implements View.OnClickListener  {
 
@@ -37,6 +39,10 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
             EditText passwordFieldObtained = findViewById(R.id.passwordField);
             String userPassword = passwordFieldObtained.getText().toString();
             logIn(userEmail, userPassword);
+
+            Intent intent = new Intent(this, HomeController.class);
+            startActivity(intent);
+
         }
 
     }
