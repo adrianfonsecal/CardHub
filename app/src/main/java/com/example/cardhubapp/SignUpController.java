@@ -35,8 +35,8 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
     }
 }
     private void signUp(String name, String email, String password) {
-        AsyncTaskOperator asyncTaskSignUp = new AsyncTaskOperator("http://10.0.2.2:8000/signup/");
-        asyncTaskSignUp.execute(name, email, password);
+//        AsyncTaskOperator asyncTaskSignUp = new AsyncTaskOperator("http://10.0.2.2:8000/signup/");
+//        asyncTaskSignUp.execute(name, email, password);
 
     }
 

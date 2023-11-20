@@ -1,8 +1,12 @@
 package com.example.cardhubapp.connection;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -18,12 +22,14 @@ public class ApiClient {
         setConnection(connection);
         setParameters(parameters);
     }
-    public Integer createRequest(){
+    public JsonArray createRequest(){
         int responseCode = 0;
+        JsonArray jsonResponseData = null;
         try {
             prepareConnection();
             String jsonLoginData = convertMapToJson(parameters);
             sendData(jsonLoginData);
+            jsonResponseData = getResponseData();
             responseCode = connection.getResponseCode();
             verifyResponseCode(responseCode);
             connection.disconnect();
@@ -31,8 +37,29 @@ public class ApiClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return responseCode;
+        return jsonResponseData;
     }
+
+    private JsonArray getResponseData() {
+        JsonArray jsonArray = null;
+        try  {
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+
+            jsonArray = JsonParser.parseString(response.toString()).getAsJsonArray();
+
+            System.out.println(jsonArray.size());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("Respuesta del servidor ApiClient: " + jsonArray);
+        return jsonArray;
+    }
+
     private void verifyResponseCode(int responseCode){
         if (responseCode == HttpURLConnection.HTTP_OK) {
             System.out.println("Connection was made succesfully");
