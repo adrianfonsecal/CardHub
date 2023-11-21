@@ -28,8 +28,10 @@ public class ApiClient {
         try {
             prepareConnection();
             String jsonLoginData = convertMapToJson(parameters);
+            System.out.println("api client el json para envar es: " + jsonLoginData);
             sendData(jsonLoginData);
             jsonResponseData = getResponseData();
+
             responseCode = connection.getResponseCode();
             verifyResponseCode(responseCode);
             connection.disconnect();
@@ -47,6 +49,7 @@ public class ApiClient {
             StringBuilder response = new StringBuilder();
             String responseLine;
             while ((responseLine = br.readLine()) != null) {
+                System.out.println("responseLine: " + responseLine);
                 response.append(responseLine.trim());
             }
 
@@ -70,6 +73,7 @@ public class ApiClient {
     private void sendData(String jsonData) throws IOException, IOException {
         OutputStream outputStream = connection.getOutputStream();
         writeToOutputStream(outputStream, jsonData);
+        System.out.println("entro a send data" + connection);
     }
     private void writeToOutputStream(OutputStream outputStream, String data) throws IOException {
         try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream)) {
