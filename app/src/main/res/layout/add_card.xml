@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/dark_blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+        android:id="@+id/creditCardProductSpinner"
+        android:layout_width="354dp"
+        android:layout_height="57dp"
+        android:layout_marginTop="64dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+    <Spinner
+        android:id="@+id/selectPaymentDaySpinner"
+        android:layout_width="141dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="56dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.107"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/creditCardProductSpinner" />
+
+    <Spinner
+        android:id="@+id/selectCutOffDaySpinner"
+        android:layout_width="141dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="56dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.72"
+        app:layout_constraintStart_toEndOf="@+id/selectPaymentDaySpinner"
+        app:layout_constraintTop_toBottomOf="@+id/creditCardProductSpinner" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:text="Escoja su tarjeta de crédito"
+        app:layout_constraintBottom_toTopOf="@+id/creditCardProductSpinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintVertical_bias="0.507" />
+
+    <TextView
+        android:id="@+id/paymentDayTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Día de pago"
+        app:layout_constraintBottom_toTopOf="@+id/selectPaymentDaySpinner"
+        app:layout_constraintStart_toStartOf="@+id/selectPaymentDaySpinner"
+        app:layout_constraintTop_toBottomOf="@+id/creditCardProductSpinner" />
+
+    <TextView
+        android:id="@+id/currentDebtTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Deuda actual"
+        app:layout_constraintBottom_toTopOf="@+id/currentDebtDecimalField"
+        app:layout_constraintStart_toStartOf="@+id/currentDebtDecimalField"
+        app:layout_constraintTop_toBottomOf="@+id/selectPaymentDaySpinner" />
+
+    <TextView
+        android:id="@+id/currentDebtTextView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="Pago para no generar intereses"
+        app:layout_constraintBottom_toTopOf="@+id/paymentForNoInterestDecimalField"
+        app:layout_constraintStart_toStartOf="@+id/paymentForNoInterestDecimalField"
+        app:layout_constraintTop_toBottomOf="@+id/currentDebtDecimalField"
+        app:layout_constraintVertical_bias="0.585" />
+
+    <TextView
+        android:id="@+id/cutOffDayTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Día de corte"
+        app:layout_constraintBottom_toTopOf="@+id/selectCutOffDaySpinner"
+        app:layout_constraintStart_toStartOf="@+id/selectCutOffDaySpinner"
+        app:layout_constraintTop_toBottomOf="@+id/creditCardProductSpinner" />
+
+    <EditText
+        android:id="@+id/currentDebtDecimalField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="52dp"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selectPaymentDaySpinner" />
+
+    <EditText
+        android:id="@+id/paymentForNoInterestDecimalField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        app:layout_constraintTop_toBottomOf="@+id/currentDebtDecimalField"
+        tools:layout_editor_absoluteX="28dp" />
+
+    <Button
+        android:id="@+id/saveCreditCardBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Guardar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/paymentForNoInterestDecimalField" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

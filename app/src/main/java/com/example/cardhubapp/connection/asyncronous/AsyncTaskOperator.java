@@ -29,6 +29,9 @@ public class AsyncTaskOperator implements Runnable {
         setEndpointUrl(endpointUrl);
         setQueryParameters(parameters);
     }
+    public AsyncTaskOperator(String endpointUrl) {
+        setEndpointUrl(endpointUrl);
+    }
 
 
     @Override
@@ -60,8 +63,24 @@ public class AsyncTaskOperator implements Runnable {
             System.out.println("json array " + jsonArray);
             this.jsonResponse = jsonArray;
 
+        } else if (endpointUrl.contains("get_all_cards")) {
+            System.out.println("Entro a get all user cards");
+            jsonArray = createRequestToAPI(connection);
+            System.out.println("json array " + jsonArray);
+            this.jsonResponse = jsonArray;
 
-        } else {
+        }else if (endpointUrl.contains("add_card_to_user_cardholder")) {
+            System.out.println("Entro a add card to user cardholder");
+            List<String> keys = Arrays.asList("email", "card_id");
+            Map parameters = buildMap(keys, queryParameters);
+            System.out.println("Los query parameters en login son: " + queryParameters);
+            jsonArray = createRequestToAPI(connection, parameters);
+            System.out.println("json array " + jsonArray);
+            this.jsonResponse = jsonArray;
+
+        }
+
+        else {
             System.out.println("No contiene login");
         }
 
@@ -69,6 +88,14 @@ public class AsyncTaskOperator implements Runnable {
 
     private JsonArray createRequestToAPI(HttpURLConnection connection, Map parameters) {
         ApiClient apiClient = new ApiClient(connection, parameters);
+        JsonArray jsonResponse = apiClient.createRequest();
+        System.out.println("La respuesta es: " + jsonResponse);
+
+        return jsonResponse;
+    }
+
+    private JsonArray createRequestToAPI(HttpURLConnection connection) {
+        ApiClient apiClient = new ApiClient(connection);
         JsonArray jsonResponse = apiClient.createRequest();
         System.out.println("La respuesta es: " + jsonResponse);
 

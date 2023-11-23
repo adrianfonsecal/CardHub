@@ -27,15 +27,12 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         ImageButton addCardBtn = findViewById(R.id.addCardBtn);
         addCardBtn.setOnClickListener(this);
         inflateElements();
-
-
     }
 
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.addCardBtn) {
-            Intent intent = new Intent(this, SignUpController.class);
-            startActivity(intent);
+            startAddCardView(getUserEmailFromPreviousIntent());
         }
     }
 
@@ -83,6 +80,11 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    private void startAddCardView(String userEmail) {
+        Intent intent = new Intent(this, AddCardController.class);
+        intent.putExtra("USER_EMAIL", userEmail);
+        startActivity(intent);
+    }
 
 }
 

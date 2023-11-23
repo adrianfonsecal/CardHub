@@ -2,16 +2,15 @@ package com.example.cardhubapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.cardhubapp.connection.asyncronous.AsyncTaskOperator;
+import com.example.cardhubapp.notification.ErrorMessageNotificator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -53,7 +52,7 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
                 startHomeView(userEmail, userPassword);
             }else{
                 String errorMessage = "Usuario o contraseña incorrectos";
-                showErrorMessage(this, errorMessage);
+                ErrorMessageNotificator.showShortMessage(this, errorMessage);
             }
         }
 
@@ -91,9 +90,7 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
         startActivity(intent);
     }
 
-    private void showErrorMessage(Context context, String message) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-    }
+
 
 
 }

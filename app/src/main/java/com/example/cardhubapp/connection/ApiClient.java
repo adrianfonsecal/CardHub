@@ -10,9 +10,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
 import java.net.ProtocolException;
-import java.util.ArrayList;
 import java.util.Map;
 
 public class ApiClient {
@@ -22,16 +20,25 @@ public class ApiClient {
         setConnection(connection);
         setParameters(parameters);
     }
+
+    public ApiClient(HttpURLConnection connection){
+        setConnection(connection);
+    }
     public JsonArray createRequest(){
         int responseCode = 0;
         JsonArray jsonResponseData = null;
-        try {
-            prepareConnection();
-            String jsonLoginData = convertMapToJson(parameters);
-            System.out.println("api client el json para envar es: " + jsonLoginData);
-            sendData(jsonLoginData);
-            jsonResponseData = getResponseData();
 
+        try {
+            if(this.parameters != null){
+                prepareConnection("POST");
+                String jsonLoginData = convertMapToJson(parameters);
+                System.out.println("api client el json para enviar es: " + jsonLoginData);
+                sendRequest(jsonLoginData);
+            }else{
+                prepareConnection("GET");
+                sendRequest();
+            }
+            jsonResponseData = getResponseData();
             responseCode = connection.getResponseCode();
             verifyResponseCode(responseCode);
             connection.disconnect();
@@ -70,9 +77,15 @@ public class ApiClient {
             System.out.println("Request error, code: " + responseCode);
         }
     }
-    private void sendData(String jsonData) throws IOException, IOException {
+    private void sendRequest(String jsonData) throws IOException, IOException {
         OutputStream outputStream = connection.getOutputStream();
         writeToOutputStream(outputStream, jsonData);
+        System.out.println("entro a send data" + connection);
+    }
+
+    private void sendRequest() throws IOException, IOException {
+        OutputStream outputStream = connection.getOutputStream();
+
         System.out.println("entro a send data" + connection);
     }
     private void writeToOutputStream(OutputStream outputStream, String data) throws IOException {
@@ -86,8 +99,8 @@ public class ApiClient {
         System.out.println(jsonLoginData);
         return jsonLoginData;
     }
-    private void prepareConnection() throws ProtocolException {
-        connection.setRequestMethod("POST");
+    private void prepareConnection(String httpMethod) throws ProtocolException {
+        connection.setRequestMethod(httpMethod);
         connection.setDoOutput(true);
     }
 
