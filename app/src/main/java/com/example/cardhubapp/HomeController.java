@@ -55,6 +55,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         for (int i = 0; i < creditCards.size(); i++) {
             JsonObject creditCardJsonObject = creditCards.get(i).getAsJsonObject();
             JsonObject creditCardJsonInfo = creditCardJsonObject.getAsJsonObject("card");
+
             CreditCardProduct creditCardProduct = createCreditCardProduct(creditCardJsonInfo);
             creditCardsList.add(creditCardProduct);
 
@@ -67,6 +68,20 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
             bankNameTextView.setText(creditCardProduct.getBankName());
 
             containerLayout.addView(creditCardView);
+
+            creditCardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    System.out.println("se cambia de vista");
+                    Intent intent = new Intent(HomeController.this, AccountStatementController.class);
+                    intent.putExtra("cardId", creditCardProduct.getCardId());
+                    intent.putExtra("cardName", creditCardProduct.getName());
+                    intent.putExtra("bankName", creditCardProduct.getBankName());
+                    intent.putExtra("interestRate", String.valueOf(creditCardProduct.getInterestRate()));
+                    intent.putExtra("annuity", creditCardProduct.getAnnuity());
+                    startActivity(intent);
+                }
+            });
         }
     }
 
@@ -76,6 +91,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         String bankName = creditCardJsonInfo.get("bank_name").getAsString();
         float annuity = creditCardJsonInfo.get("annuity").getAsFloat();
         float interestRate = creditCardJsonInfo.get("interest_rate").getAsFloat();
+
         CreditCardProduct creditCardProduct = new CreditCardProduct(cardId, cardName, bankName, interestRate, annuity);
         return creditCardProduct;
     }
