@@ -54,7 +54,7 @@ public class AsyncTaskOperator implements Runnable {
             jsonArray = createRequestToAPI(connection, parameters);
             System.out.println("json array " + jsonArray);
             this.jsonResponse = jsonArray;
-        } else if (endpointUrl.contains("get-all-user-cards")) {
+        } else if (endpointUrl.contains("get_all_user_cards")) {
             System.out.println("Entro a get all user cards");
             List<String> keys = Arrays.asList("email");
             Map parameters = buildMap(keys, queryParameters);

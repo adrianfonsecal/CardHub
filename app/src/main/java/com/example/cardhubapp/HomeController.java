@@ -7,11 +7,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cardhubapp.dataaccess.CreditCardDatabaseAccesor;
+import com.example.cardhubapp.model.CreditCardProduct;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeController extends AppCompatActivity implements View.OnClickListener{
     Intent intent = getIntent();
@@ -22,11 +28,18 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        allowSyncronousOperations();
         setContentView(R.layout.home);
+        allowSyncronousOperations();
+        setOnClickListeners();
+
+        String userEmail = getUserEmailFromPreviousIntent();
+        JsonArray creditCards = getAllUserCards(userEmail);
+        inflateElements(creditCards);
+    }
+
+    private void setOnClickListeners() {
         ImageButton addCardBtn = findViewById(R.id.addCardBtn);
         addCardBtn.setOnClickListener(this);
-        inflateElements();
     }
 
     @Override
@@ -36,17 +49,35 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    private void inflateElements(){
+    private void inflateElements(JsonArray creditCards){
         LinearLayout containerLayout = findViewById(R.id.containerLayout);
-        String userEmail = getUserEmailFromPreviousIntent();
-        JsonArray creditCards = getAllUserCards(userEmail);
-
+        List<CreditCardProduct> creditCardsList = new ArrayList<>();
         for (int i = 0; i < creditCards.size(); i++) {
-            LayoutInflater inflater = LayoutInflater.from(this);
-            LinearLayout inflatedLayout = (LinearLayout) inflater.inflate(R.layout.card_element, containerLayout, false);
-            containerLayout.addView(inflatedLayout);
-        }
+            JsonObject creditCardJsonObject = creditCards.get(i).getAsJsonObject();
+            JsonObject creditCardJsonInfo = creditCardJsonObject.getAsJsonObject("card");
+            CreditCardProduct creditCardProduct = createCreditCardProduct(creditCardJsonInfo);
+            creditCardsList.add(creditCardProduct);
 
+            View creditCardView = LayoutInflater.from(this).inflate(R.layout.card_element, containerLayout, false);
+
+            TextView cardNameTextView = creditCardView.findViewById(R.id.tipoTarjetaTextView);
+            TextView bankNameTextView = creditCardView.findViewById(R.id.tituloTextView);
+
+            cardNameTextView.setText(creditCardProduct.getName());
+            bankNameTextView.setText(creditCardProduct.getBankName());
+
+            containerLayout.addView(creditCardView);
+        }
+    }
+
+    private CreditCardProduct createCreditCardProduct(JsonObject creditCardJsonInfo) {
+        Integer cardId = creditCardJsonInfo.get("card_id").getAsInt();
+        String cardName = creditCardJsonInfo.get("card_name").getAsString();
+        String bankName = creditCardJsonInfo.get("bank_name").getAsString();
+        float annuity = creditCardJsonInfo.get("annuity").getAsFloat();
+        float interestRate = creditCardJsonInfo.get("interest_rate").getAsFloat();
+        CreditCardProduct creditCardProduct = new CreditCardProduct(cardId, cardName, bankName, interestRate, annuity);
+        return creditCardProduct;
     }
 
     private void allowSyncronousOperations() {

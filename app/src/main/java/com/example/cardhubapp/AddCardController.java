@@ -132,9 +132,12 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
 
             for (int i = 0; i < creditCardProducts.size(); i++) {
                 JsonObject jsonObject = creditCardProducts.get(i).getAsJsonObject();
-                String cardName = jsonObject.get("card_name").getAsString();
                 Integer cardId = jsonObject.get("card_id").getAsInt();
-                CreditCardProduct creditCardProduct = new CreditCardProduct(cardId, cardName);
+                String cardName = jsonObject.get("card_name").getAsString();
+                String bankName = jsonObject.get("bank_name").getAsString();
+                float interestRate = jsonObject.get("interest_rate").getAsFloat();
+                float annuity = jsonObject.get("annuity").getAsFloat();
+                CreditCardProduct creditCardProduct = new CreditCardProduct(cardId, cardName, bankName, interestRate, annuity);
                 System.out.println("Agregando el cardId al Spinner: " + cardId);
                 cardNames.add(creditCardProduct);
             }
