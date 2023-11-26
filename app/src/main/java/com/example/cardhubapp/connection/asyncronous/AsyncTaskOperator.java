@@ -42,31 +42,25 @@ public class AsyncTaskOperator implements Runnable {
         if (endpointUrl.contains("login")) {
             List<String> keys = Arrays.asList("email", "password");
             Map parameters = buildMap(keys, queryParameters);
-            System.out.println("Los query parameters en login son: " + queryParameters);
             jsonArray = createRequestToAPI(connection, parameters);
-            System.out.println("json array " + jsonArray);
             this.jsonResponse = jsonArray;
 
         } else if (endpointUrl.contains("signup")) {
             List<String> keys = Arrays.asList("name", "email", "password");
             Map parameters = buildMap(keys, queryParameters);
-            System.out.println("Los query parameters en signup son: " + queryParameters);
             jsonArray = createRequestToAPI(connection, parameters);
-            System.out.println("json array " + jsonArray);
             this.jsonResponse = jsonArray;
         } else if (endpointUrl.contains("get_all_user_cards")) {
             System.out.println("Entro a get all user cards");
             List<String> keys = Arrays.asList("email");
             Map parameters = buildMap(keys, queryParameters);
-            System.out.println("Los query parameters en login son: " + queryParameters);
             jsonArray = createRequestToAPI(connection, parameters);
-            System.out.println("json array " + jsonArray);
             this.jsonResponse = jsonArray;
 
         } else if (endpointUrl.contains("get_all_cards")) {
             System.out.println("Entro a get all user cards");
             jsonArray = createRequestToAPI(connection);
-            System.out.println("json array " + jsonArray);
+            System.out.println("los get all cards son: " + jsonArray);
             this.jsonResponse = jsonArray;
 
         }else if (endpointUrl.contains("add_card_to_user_cardholder")) {
@@ -78,8 +72,34 @@ public class AsyncTaskOperator implements Runnable {
             System.out.println("json array " + jsonArray);
             this.jsonResponse = jsonArray;
 
+        } else if (endpointUrl.contains("generate_card_statement")) {
+            System.out.println("Entro a generate card statement");
+            List<String> keys = Arrays.asList("cut_off_date", "payment_date", "current_debt", "pni", "date", "card_holder_cards_id");
+            Map parameters = buildMap(keys, queryParameters);
+            System.out.println("Los query parameters en generate card statement son: " + queryParameters);
+            jsonArray = createRequestToAPI(connection, parameters);
+            System.out.println("json array " + jsonArray);
+            this.jsonResponse = jsonArray;
+        }
+        else if (endpointUrl.contains("get_last_statement")) {
+            System.out.println("Entro a get last account statement");
+            List<String> keys = Arrays.asList("cardholder_card_id");
+            Map parameters = buildMap(keys, queryParameters);
+            System.out.println("Los query parameters en get last statement son: " + queryParameters);
+            jsonArray = createRequestToAPI(connection, parameters);
+            System.out.println("json array " + jsonArray);
+            this.jsonResponse = jsonArray;
         }
 
+        else if (endpointUrl.contains("remove_card_from_user_cardholder")) {
+            System.out.println("Entro a remove card from user cardholder");
+            List<String> keys = Arrays.asList("cardholder_card_id");
+            Map parameters = buildMap(keys, queryParameters);
+            System.out.println("Los query parameters en get last statement son: " + queryParameters);
+            jsonArray = createRequestToAPI(connection, parameters);
+            System.out.println("json array " + jsonArray);
+            this.jsonResponse = jsonArray;
+        }
         else {
             System.out.println("No contiene login");
         }

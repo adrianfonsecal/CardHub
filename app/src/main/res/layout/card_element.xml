@@ -21,7 +21,7 @@
 
         <!-- Texto en negritas -->
         <TextView
-            android:id="@+id/tituloTextView"
+            android:id="@+id/bankNameTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tarjeta de crédito"
@@ -30,7 +30,7 @@
 
         <!-- Texto "Visa" -->
         <TextView
-            android:id="@+id/tipoTarjetaTextView"
+            android:id="@+id/cardNameTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Visa"

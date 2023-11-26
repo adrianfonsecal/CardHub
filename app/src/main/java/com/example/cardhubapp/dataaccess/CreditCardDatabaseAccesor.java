@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class CreditCardDatabaseAccesor{
-//
+
     public CreditCardDatabaseAccesor(){}
     public JsonArray getAllCreditCardsFromUser(String email) {
         ArrayList param = new ArrayList(Arrays.asList(email));
@@ -33,6 +33,15 @@ public class CreditCardDatabaseAccesor{
     public JsonArray addCardToUserCardHolder(String userEmail, String cardId){
         ArrayList param = new ArrayList(Arrays.asList(userEmail, cardId));
         AsyncTaskOperator asyncTaskOperator = new AsyncTaskOperator("http://10.0.2.2:8000/add_card_to_user_cardholder/", param);
+        asyncTaskOperator.run();
+        JsonArray creditCardProducts = asyncTaskOperator.getJsonResponse();
+        System.out.println("La respuesta Json en DB fue:" + creditCardProducts);
+        return creditCardProducts;
+    }
+
+    public JsonArray deleteCardFromCardholder(String cardholderCardId){
+        ArrayList param = new ArrayList(Arrays.asList(cardholderCardId));
+        AsyncTaskOperator asyncTaskOperator = new AsyncTaskOperator("http://10.0.2.2:8000/remove_card_from_user_cardholder/", param);
         asyncTaskOperator.run();
         JsonArray creditCardProducts = asyncTaskOperator.getJsonResponse();
         System.out.println("La respuesta Json en DB fue:" + creditCardProducts);

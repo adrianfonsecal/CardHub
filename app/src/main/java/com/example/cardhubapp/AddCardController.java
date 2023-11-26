@@ -1,79 +1,165 @@
 package com.example.cardhubapp;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.cardhubapp.dataaccess.AccountStatementDatabaseAccesor;
 import com.example.cardhubapp.dataaccess.CreditCardDatabaseAccesor;
+import com.example.cardhubapp.model.AccountStatement;
+import com.example.cardhubapp.model.Date;
 import com.example.cardhubapp.uielements.CreditCardAdapter;
 import com.example.cardhubapp.model.CreditCardProduct;
 import com.example.cardhubapp.notification.ErrorMessageNotificator;
+import com.example.cardhubapp.uielements.DateSelectionListener;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
-public class AddCardController extends AppCompatActivity implements View.OnClickListener{
+public class AddCardController extends AppCompatActivity implements View.OnClickListener, DateSelectionListener {
 
+    private String selectedCutOffDate;
+    private String selectedPaymentDate;
+    private EditText editText;
+    private Calendar calendar;
+    private Button buttonToActivateCutOffDateCalendar;
+    private Button buttonToActivatePaymentDateCalendar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        allowSyncronousOperations();
         setContentView(R.layout.add_card);
-        setDaysForDaysSpinner();
+        allowSyncronousOperations();
         setCreditCardProductsForCreditCardSpinner();
-        Button addCardBtn = findViewById(R.id.saveCreditCardBtn);
-        addCardBtn.setOnClickListener(this);
+        setButtonsOnClickListeners();
+        setSpinnersOnClickListeners();
 
-        Spinner creditCardProductsSpinner = findViewById(R.id.creditCardProductSpinner);
-        setListenerForCreditCardProductSpinner(creditCardProductsSpinner);
 
-        Spinner cutOffDaysSpinner = findViewById(R.id.selectCutOffDaySpinner);
-        setListenerDaysSpinner(cutOffDaysSpinner);
 
-        Spinner paymentDaysSpinner = findViewById(R.id.selectPaymentDaySpinner);
-        setListenerDaysSpinner(paymentDaysSpinner);
     }
 
+
+
+
+    private void showCalendarDialog(View view, String dateType) {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(AddCardController.this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int dayOfMonth) {
+                String selectedDate = year + "-" + month + "-" + dayOfMonth;
+                notifyDateSelected(selectedDate, dateType);
+            }
+        }, year, month, day);
+        datePickerDialog.show();
+    }
+
+    private void notifyDateSelected(String selectedDate, String dateType) {
+        if (this instanceof DateSelectionListener) {
+            ((DateSelectionListener) this).onDateSelected(selectedDate, dateType);
+        }
+    }
 
 
     @Override
     public void onClick(View view) {
         Spinner creditCardProductsSpinner = findViewById(R.id.creditCardProductSpinner);
-        Spinner paymentDaysSpinner = findViewById(R.id.selectPaymentDaySpinner);
-        Spinner cutOffDaysSpinner = findViewById(R.id.selectCutOffDaySpinner);
         EditText currentDebtDecimalField = findViewById(R.id.currentDebtDecimalField);
         EditText paymentForNoInterestDecimalField = findViewById(R.id.paymentForNoInterestDecimalField);
-        if (view.getId() == R.id.saveCreditCardBtn) {
-            Integer selectedCreditCardProduct = getSelectedItemInSpinner(creditCardProductsSpinner);
-            System.out.println("tarjeta es: " + selectedCreditCardProduct);
+
+        if(view.getId() == R.id.saveCreditCardBtn) {
+            saveCreditCardAndAccountStatement(creditCardProductsSpinner, currentDebtDecimalField, paymentForNoInterestDecimalField);
+        }
+        if(view.getId() == R.id.paymenDateCalendarOpenerBtn) {
+            showCalendarDialog(view, "paymentDate");
+        }
+        if(view.getId() == R.id.cutOffDateCalendarOpenerBtn) {
+            showCalendarDialog(view, "cutOffDate");
+        }
+
+    }
+
+    private void saveCreditCardAndAccountStatement(Spinner creditCardProductsSpinner, EditText currentDebtDecimalField, EditText paymentForNoInterestDecimalField) {
+        Float currentDebt = getFloatFromEditText(currentDebtDecimalField);
+        Float paymentForNoInterest = getFloatFromEditText(paymentForNoInterestDecimalField);
+        
+        if(allFieldsAreValid(currentDebt, paymentForNoInterest)){
+            System.out.println("all fields are valid");
+            Integer selectedCreditCardProduct = getSelectedCreditCardProductInSpinner(creditCardProductsSpinner);
             String userEmail = getUserEmailFromPreviousIntent();
-            saveCreditCard(userEmail, selectedCreditCardProduct);
+            JsonArray savedCreditCardResponse = saveCreditCard(userEmail, selectedCreditCardProduct);
 
-
-//            String selectedPaymentDay = getSelectedItemInSpinner(paymentDaysSpinner);
-//            String selectedCutOffDay = getSelectedItemInSpinner(cutOffDaysSpinner);
-
-//            String currentDebtText = currentDebtDecimalField.getText().toString();
-//            Integer currentDebt = Integer.valueOf(currentDebtText);
-//
-//            String paymentForNoInterestText = paymentForNoInterestDecimalField.getText().toString();
-//            Integer paymentForNoInterest = Integer.valueOf(paymentForNoInterestText);
-
-            //saveCreditCard(selectedCreditCardProduct);
+            String todayDate = Date.getCurrentDate();
+            AccountStatement firstAccountStatementOfUser = new AccountStatement(this.selectedCutOffDate, this.selectedPaymentDate, currentDebt, paymentForNoInterest);
+            Integer cardholderCardId = getCardholderCardIdFromResponse(savedCreditCardResponse);
+            System.out.println("El cardholderID es: " + cardholderCardId);
+            saveFirstAccountStatement(firstAccountStatementOfUser, todayDate, cardholderCardId);
             startHomeView(userEmail);
+        }else{
+            String message = "Por favor llene todos los campos";
+            ErrorMessageNotificator.showShortMessage(this, message);
         }
     }
 
-    private Integer getSelectedItemInSpinner(Spinner spinner) {
+    private boolean allFieldsAreValid(Float currentDebt, Float paymentForNoInterest) {
+        boolean isCurrentDebtValid = currentDebt != null;
+        boolean isPaymentForNoInterestValid = paymentForNoInterest != null;
+        boolean isCutOffDateValid = this.selectedCutOffDate != null && !this.selectedCutOffDate.equals("");
+        boolean isPaymentDateValid = this.selectedPaymentDate != null && !this.selectedPaymentDate.equals("");
+
+        return (isCurrentDebtValid && isPaymentForNoInterestValid && isCutOffDateValid && isPaymentDateValid);
+    }
+
+    private Float getFloatFromEditText(EditText editText) {
+        String editTextText = editText.getText().toString();
+        if (editTextText.isEmpty()) {
+            return 0.0f;
+        }
+        return Float.valueOf(editTextText);
+    }
+
+    private Integer getCardholderCardIdFromResponse(JsonArray response) {
+        JsonObject jsonObject = response.get(0).getAsJsonObject();
+        Integer cardholderCardId = jsonObject.get("cardholder_card_id").getAsInt();
+        System.out.println("el cardholder cardid en controller es: " + cardholderCardId);
+        return cardholderCardId;
+    }
+
+    private Integer getCardholderCardIdFromPreviousIntent() {
+        Intent intent = getIntent();
+        Integer cardholderCardId = null;
+        if (intent != null) {
+            cardholderCardId = intent.getIntExtra("cardholderCardId", 0);
+            return cardholderCardId;
+        }else{
+            return null;
+        }
+    }
+
+    private void saveFirstAccountStatement(AccountStatement firstAccountStatementOfUser, String todayDate, Integer cardholderCardId) {
+        AccountStatementDatabaseAccesor accountStatementDatabaseAccesor = new AccountStatementDatabaseAccesor();
+        accountStatementDatabaseAccesor.saveAccountStatement(firstAccountStatementOfUser, todayDate, cardholderCardId);
+
+    }
+
+    private boolean isCalendarButtonClicked(View view){
+        return view.getId() == R.id.cutOffDateCalendarOpenerBtn || view.getId() == R.id.paymenDateCalendarOpenerBtn;
+    }
+
+    private Integer getSelectedCreditCardProductInSpinner(Spinner spinner) {
         CreditCardProduct selectedItem = (CreditCardProduct) spinner.getSelectedItem();
         if (selectedItem != null) {
             Integer selectedCardId = selectedItem.getCardId();
@@ -86,12 +172,12 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
     }
 
 
-    private void saveCreditCard(String userEmail, Integer cardId) {
+    private JsonArray saveCreditCard(String userEmail, Integer cardId) {
         CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        creditCardDatabaseAccesor.addCardToUserCardHolder(userEmail, cardId.toString());
+        JsonArray response = creditCardDatabaseAccesor.addCardToUserCardHolder(userEmail, cardId.toString());
         System.out.println("Se salvo la tarjeta: " + cardId);
+        return response;
     }
-
 
     private void setListenerForCreditCardProductSpinner(Spinner spinner) {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -104,21 +190,6 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
                 ErrorMessageNotificator.showShortMessage(AddCardController.this, "a");
-            }
-        });
-    }
-
-    private void setListenerDaysSpinner(Spinner spinner) {
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                Integer salectedDay = (Integer)parentView.getItemAtPosition(position);
-                System.out.println("El elemento seleccionado fue: " + salectedDay);
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                String errorMessage = "Por favor no deje vacío ningún elemento";
-                ErrorMessageNotificator.showShortMessage(AddCardController.this, errorMessage);
             }
         });
     }
@@ -150,18 +221,31 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         }
     }
 
-    private void setDaysForDaysSpinner() {
-        Spinner cutOffDaysSpinner = findViewById(R.id.selectCutOffDaySpinner);
-        Spinner paymentDaySpinner = findViewById(R.id.selectPaymentDaySpinner);
+    private Integer getSelectedItemInSpinner(Spinner spinner) {
+        CreditCardProduct selectedItem = (CreditCardProduct) spinner.getSelectedItem();
+        if (selectedItem != null) {
+            Integer selectedCardId = selectedItem.getCardId();
+            System.out.println("Seleccionado elemento: " + selectedItem);
+            return selectedCardId;
 
-        Integer[] daysOfMonth = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
-
-        ArrayAdapter<Integer> adaptador = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, daysOfMonth);
-        adaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        cutOffDaysSpinner.setAdapter(adaptador);
-        paymentDaySpinner.setAdapter(adaptador);
+        }else{
+            return null;
+        }
     }
 
+    private void setSpinnersOnClickListeners() {
+        Spinner creditCardProductsSpinner = findViewById(R.id.creditCardProductSpinner);
+        setListenerForCreditCardProductSpinner(creditCardProductsSpinner);
+    }
+
+    private void setButtonsOnClickListeners() {
+        Button addCardBtn = findViewById(R.id.saveCreditCardBtn);
+        addCardBtn.setOnClickListener(this);
+        Button cutOffDateCalendarOpenerBtn = findViewById(R.id.cutOffDateCalendarOpenerBtn);
+        cutOffDateCalendarOpenerBtn.setOnClickListener(this);
+        Button paymenDateCalendarOpenerBtn = findViewById(R.id.paymenDateCalendarOpenerBtn);
+        paymenDateCalendarOpenerBtn.setOnClickListener(this);
+    }
 
     private void allowSyncronousOperations() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -184,4 +268,17 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         intent.putExtra("USER_EMAIL", userEmail);
         startActivity(intent);
     }
+
+    @Override
+    public void onDateSelected(String selectedDate, String dateType) {
+        if (dateType.equals("cutOffDate")) {
+            this.selectedCutOffDate = selectedDate;
+        } else if (dateType.equals("paymentDate")) {
+            this.selectedPaymentDate = selectedDate;
+        }else{
+            System.out.println("Error, only cut off and payment date are allowed");
+        }
+
+    }
+
 }

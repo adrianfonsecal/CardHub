@@ -20,38 +20,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeController extends AppCompatActivity implements View.OnClickListener{
-    Intent intent = getIntent();
-
-//    final String USER_EMAIL = getUserEmailFromPreviousIntent();
-//    final String USER_PASSWORD = getUserPasswordFromPreviousIntent();
     private JsonArray response;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home);
         allowSyncronousOperations();
-        setOnClickListeners();
-
+        setButtonsOnClickListeners();
         String userEmail = getUserEmailFromPreviousIntent();
         JsonArray creditCards = getAllUserCards(userEmail);
         inflateElements(creditCards);
     }
 
-    private void setOnClickListeners() {
+    private void setButtonsOnClickListeners() {
         ImageButton addCardBtn = findViewById(R.id.addCardBtn);
         addCardBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View view) {
-        if (view.getId() == R.id.addCardBtn) {
+        if (userClickedAddCardButton(view)) {
             startAddCardView(getUserEmailFromPreviousIntent());
         }
     }
 
-    private void inflateElements(JsonArray creditCards){
+
+
+    private void inflateElements(JsonArray creditCards) {
         LinearLayout containerLayout = findViewById(R.id.containerLayout);
         List<CreditCardProduct> creditCardsList = new ArrayList<>();
+
         for (int i = 0; i < creditCards.size(); i++) {
             JsonObject creditCardJsonObject = creditCards.get(i).getAsJsonObject();
             JsonObject creditCardJsonInfo = creditCardJsonObject.getAsJsonObject("card");
@@ -59,31 +57,45 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
             CreditCardProduct creditCardProduct = createCreditCardProduct(creditCardJsonInfo);
             creditCardsList.add(creditCardProduct);
 
-            View creditCardView = LayoutInflater.from(this).inflate(R.layout.card_element, containerLayout, false);
-
-            TextView cardNameTextView = creditCardView.findViewById(R.id.tipoTarjetaTextView);
-            TextView bankNameTextView = creditCardView.findViewById(R.id.tituloTextView);
-
-            cardNameTextView.setText(creditCardProduct.getName());
-            bankNameTextView.setText(creditCardProduct.getBankName());
-
+            View creditCardView = createCreditCardView(creditCardProduct, creditCardJsonObject);
             containerLayout.addView(creditCardView);
-
-            creditCardView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    System.out.println("se cambia de vista");
-                    Intent intent = new Intent(HomeController.this, AccountStatementController.class);
-                    intent.putExtra("cardId", creditCardProduct.getCardId());
-                    intent.putExtra("cardName", creditCardProduct.getName());
-                    intent.putExtra("bankName", creditCardProduct.getBankName());
-                    intent.putExtra("interestRate", String.valueOf(creditCardProduct.getInterestRate()));
-                    intent.putExtra("annuity", creditCardProduct.getAnnuity());
-                    startActivity(intent);
-                }
-            });
         }
     }
+
+    private View createCreditCardView(CreditCardProduct creditCardProduct, JsonObject creditCardJsonObject) {
+        View creditCardView = LayoutInflater.from(this).inflate(R.layout.card_element, null);
+
+        TextView cardNameTextView = creditCardView.findViewById(R.id.cardNameTextView);
+        TextView bankNameTextView = creditCardView.findViewById(R.id.bankNameTextView);
+
+        cardNameTextView.setText(creditCardProduct.getName());
+        bankNameTextView.setText(creditCardProduct.getBankName());
+
+        creditCardView.setOnClickListener(view -> startAccountStatementView(creditCardProduct, creditCardJsonObject));
+
+        return creditCardView;
+    }
+
+    private void startAccountStatementView(CreditCardProduct creditCardProduct, JsonObject creditCardJsonObject) {
+        Intent intent = new Intent(HomeController.this, AccountStatementController.class);
+        intent.putExtra("cardId", creditCardProduct.getCardId());
+        intent.putExtra("cardName", creditCardProduct.getName());
+        intent.putExtra("bankName", creditCardProduct.getBankName());
+        intent.putExtra("interestRate", String.valueOf(creditCardProduct.getInterestRate()));
+        intent.putExtra("annuity", creditCardProduct.getAnnuity());
+        intent.putExtra("cardholderCardId", getCardholderIdFromCreditCard(creditCardJsonObject).toString());
+        intent.putExtra("userEmail", getUserEmailFromPreviousIntent());
+        startActivity(intent);
+    }
+
+
+    private Integer getCardholderIdFromCreditCard(JsonObject creditCardJsonObject) {
+        JsonObject cardHolderCardObject = creditCardJsonObject.getAsJsonObject("card_holder_card");
+        Integer cardHolderCardsId = cardHolderCardObject.get("card_holder_cards_id").getAsInt();
+        System.out.println("El cardholder_cards_id es: " + cardHolderCardsId);
+        return cardHolderCardsId;
+    }
+
 
     private CreditCardProduct createCreditCardProduct(JsonObject creditCardJsonInfo) {
         Integer cardId = creditCardJsonInfo.get("card_id").getAsInt();
@@ -116,21 +128,15 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
             return null;
         }
     }
-    private String getUserPasswordFromPreviousIntent() {
-        Intent intent = getIntent();
-        String userPassword = null;
-        if (intent != null) {
-            userPassword = intent.getStringExtra("USER_PASSWORD");
-            return userPassword;
-        }else{
-            return null;
-        }
-    }
 
     private void startAddCardView(String userEmail) {
         Intent intent = new Intent(this, AddCardController.class);
         intent.putExtra("USER_EMAIL", userEmail);
         startActivity(intent);
+    }
+
+    private boolean userClickedAddCardButton(View view) {
+        return view.getId() == R.id.addCardBtn;
     }
 
 }
