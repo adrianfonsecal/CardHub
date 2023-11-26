@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cardhubapp.connection.asyncronous.AsyncTaskOperator;
+import com.example.cardhubapp.connection.apirequest.UserAccessApiRequestProcessor;
 import com.example.cardhubapp.notification.ErrorMessageNotificator;
 import com.example.cardhubapp.validator.EmailValidator;
 import com.example.cardhubapp.validator.PasswordValidator;
@@ -28,10 +28,10 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sign_up);
         allowSyncronousOperations();
-        initButtons();
+        setOnClickListenersToButtons();
     }
 
-    private void initButtons() {
+    private void setOnClickListenersToButtons() {
         Button signUpBtn = findViewById(R.id.signUpBtn);
         signUpBtn.setOnClickListener(this);
     }
@@ -127,13 +127,10 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
     }
 
     private JsonArray signUp(String name, String email, String password) {
-
         ArrayList userSignupData = new ArrayList<>(Arrays.asList(name, email, password));
-        AsyncTaskOperator asyncTaskLogIn = new AsyncTaskOperator("http://10.0.2.2:8000/signup/", userSignupData);
-        asyncTaskLogIn.run();
-        JsonArray isSignedResponse = asyncTaskLogIn.getJsonResponse();
+        UserAccessApiRequestProcessor userAccessApiRequestProcessor = new UserAccessApiRequestProcessor("http://10.0.2.2:8000/signup/", userSignupData);
+        JsonArray isSignedResponse = userAccessApiRequestProcessor.executeRequest();
         return isSignedResponse;
-
     }
 
     private boolean isUserSignedUp(JsonArray signUpResponse) {

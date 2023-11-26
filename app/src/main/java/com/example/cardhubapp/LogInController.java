@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.example.cardhubapp.connection.asyncronous.AsyncTaskOperator;
+import com.example.cardhubapp.connection.apirequest.UserAccessApiRequestProcessor;
 import com.example.cardhubapp.notification.ErrorMessageNotificator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -28,7 +28,7 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         allowSyncronousOperations();
-        setButtonsOnClickListeners();
+        setOnClickListenersToButtons();
     }
 
     @Override
@@ -83,9 +83,8 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
 
     private JsonArray logIn(String email, String password){
         ArrayList userLoginParameters = new ArrayList<>(Arrays.asList(email, password));
-        AsyncTaskOperator asyncTaskLogIn = new AsyncTaskOperator("http://10.0.2.2:8000/login/", userLoginParameters);
-        asyncTaskLogIn.run();
-        JsonArray isLoggedResponse = asyncTaskLogIn.getJsonResponse();
+        UserAccessApiRequestProcessor userAccessApiRequestProcessor = new UserAccessApiRequestProcessor("http://10.0.2.2:8000/login/", userLoginParameters);
+        JsonArray isLoggedResponse = userAccessApiRequestProcessor.executeRequest();
         return isLoggedResponse;
     }
 
@@ -118,7 +117,7 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
         this.signUpButton = signUpButton;
     }
 
-    private void setButtonsOnClickListeners() {
+    private void setOnClickListenersToButtons() {
         Button signUpBtn = findViewById(R.id.signUpBtn);
         signUpBtn.setOnClickListener(this);
         setSignUpButton(signUpButton);

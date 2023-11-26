@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -31,25 +32,16 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
 
     private String selectedCutOffDate;
     private String selectedPaymentDate;
-    private EditText editText;
-    private Calendar calendar;
-    private Button buttonToActivateCutOffDateCalendar;
-    private Button buttonToActivatePaymentDateCalendar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_card);
         allowSyncronousOperations();
         setCreditCardProductsForCreditCardSpinner();
-        setButtonsOnClickListeners();
+        setOnClickListenersToButtons();
         setSpinnersOnClickListeners();
 
-
-
     }
-
-
-
 
     private void showCalendarDialog(View view, String dateType) {
         Calendar calendar = Calendar.getInstance();
@@ -183,16 +175,30 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                CreditCardProduct selectedCreditCard = (CreditCardProduct) parentView.getItemAtPosition(position);
-                int selectedCardId = selectedCreditCard.getCardId();
-                System.out.println("El elemento seleccionado fue: " + selectedCardId);
+                handleItemSelected(parentView, position);
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
-                ErrorMessageNotificator.showShortMessage(AddCardController.this, "a");
+                handleNothingSelected();
             }
         });
     }
+
+    private void handleItemSelected(AdapterView<?> parentView, int position) {
+        CreditCardProduct selectedCreditCard = (CreditCardProduct) parentView.getItemAtPosition(position);
+        int selectedCardId = selectedCreditCard.getCardId();
+        logSelectedCardId(selectedCardId);
+    }
+
+    private void handleNothingSelected() {
+        ErrorMessageNotificator.showShortMessage(AddCardController.this, "Nada seleccionado");
+    }
+
+    private void logSelectedCardId(int selectedCardId) {
+        Log.d("AddCardController", "El elemento seleccionado fue: " + selectedCardId);
+    }
+
 
     private void setCreditCardProductsForCreditCardSpinner() {
         CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
@@ -221,24 +227,12 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         }
     }
 
-    private Integer getSelectedItemInSpinner(Spinner spinner) {
-        CreditCardProduct selectedItem = (CreditCardProduct) spinner.getSelectedItem();
-        if (selectedItem != null) {
-            Integer selectedCardId = selectedItem.getCardId();
-            System.out.println("Seleccionado elemento: " + selectedItem);
-            return selectedCardId;
-
-        }else{
-            return null;
-        }
-    }
-
     private void setSpinnersOnClickListeners() {
         Spinner creditCardProductsSpinner = findViewById(R.id.creditCardProductSpinner);
         setListenerForCreditCardProductSpinner(creditCardProductsSpinner);
     }
 
-    private void setButtonsOnClickListeners() {
+    private void setOnClickListenersToButtons() {
         Button addCardBtn = findViewById(R.id.saveCreditCardBtn);
         addCardBtn.setOnClickListener(this);
         Button cutOffDateCalendarOpenerBtn = findViewById(R.id.cutOffDateCalendarOpenerBtn);

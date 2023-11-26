@@ -5,15 +5,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class HttpConnector {
-    private String endpointURL;
+    private String endpointURLToConnect;
     public HttpConnector(String url){
         setEndpointUrl(url);
     }
     public HttpURLConnection openConnection() throws IOException {
-        URL url = new URL(this.endpointURL);
+        URL url = new URL(this.endpointURLToConnect);
         return (HttpURLConnection) url.openConnection();
     }
     private void setEndpointUrl(String url) {
-        this.endpointURL = url;
+        this.endpointURLToConnect = url;
     }
 }

@@ -1,22 +1,20 @@
 package com.example.cardhubapp;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cardhubapp.dataaccess.AccountStatementDatabaseAccesor;
 import com.example.cardhubapp.dataaccess.CreditCardDatabaseAccesor;
 import com.example.cardhubapp.model.AccountStatement;
+import com.example.cardhubapp.notification.ConfirmationDialogWindow;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -93,7 +91,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     public void onClick(View view) {
         if(userClickedDeleteCardButton(view)){
             deleteSelectedCreditCard();
-            startHomeView();
+
         }
         if(userClickedAddMonthlyPaymentButton(view)) {
             EditText addPaymentTextField = findViewById(R.id.addPaymentTextField);
@@ -113,11 +111,17 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
 
     private void deleteSelectedCreditCard() {
+        String windowMessage = "¿Seguro que quieres eliminar la tarjeta?";
+        ConfirmationDialogWindow.showConfirmationDialog(this, windowMessage, () -> {
+            deleteCreditCard();
+            startHomeView();
+        });
+    }
+
+    private void deleteCreditCard() {
         String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
         CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        JsonArray response = creditCardDatabaseAccesor.deleteCardFromCardholder(cardholderCardId);
-        System.out.println(response);
-
+        creditCardDatabaseAccesor.deleteCardFromCardholder(cardholderCardId);
     }
 
     private boolean textFieldIsNotEmpty(EditText addPaymentTextField) {

@@ -26,13 +26,13 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home);
         allowSyncronousOperations();
-        setButtonsOnClickListeners();
+        setOnClickListenersToButtons();
         String userEmail = getUserEmailFromPreviousIntent();
         JsonArray creditCards = getAllUserCards(userEmail);
         inflateElements(creditCards);
     }
 
-    private void setButtonsOnClickListeners() {
+    private void setOnClickListenersToButtons() {
         ImageButton addCardBtn = findViewById(R.id.addCardBtn);
         addCardBtn.setOnClickListener(this);
     }

@@ -13,15 +13,15 @@ import java.io.OutputStreamWriter;
 import java.net.ProtocolException;
 import java.util.Map;
 
-public class ApiClient {
+public class RequestSender {
     private HttpURLConnection connection;
     private Map parameters;
-    public ApiClient(HttpURLConnection connection, Map parameters){
+    public RequestSender(HttpURLConnection connection, Map parameters){
         setConnection(connection);
         setParameters(parameters);
     }
 
-    public ApiClient(HttpURLConnection connection){
+    public RequestSender(HttpURLConnection connection){
         setConnection(connection);
     }
     public JsonArray createRequest(){
