@@ -32,11 +32,19 @@ public class AccountStatementRequestProcessor implements InterfaceApiRequest{
             jsonArray = executeGenerateCardStatementRequest(connection);
         } else if (endpointUrl.contains("get_last_statement")) {
             jsonArray = executeGetLastStatementRequest(connection);
+        } else if (endpointUrl.contains("get_all_statements_from_card")) {
+            jsonArray = executeGetAllStatementsFromCardRequest(connection);
         }  else {
             System.out.println("No contiene login");
         }
 
         return jsonArray;
+    }
+
+    private JsonArray executeGetAllStatementsFromCardRequest(HttpURLConnection connection) {
+        List<String> keys = Arrays.asList("cardholder_card_id");
+        Map<String, String> parameters = buildMap(keys, queryParameters);
+        return createRequestToAPI(connection, parameters);
     }
 
     private JsonArray executeGenerateCardStatementRequest(HttpURLConnection connection) {

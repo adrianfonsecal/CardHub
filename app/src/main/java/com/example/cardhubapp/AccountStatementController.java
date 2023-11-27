@@ -27,7 +27,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         allowSyncronousOperations();
         setValuesToCreditCardProductFields();
         setValuesToAccountStatementFields();
-        setButtonsOnClickListeners();
+        setOnClickListenersToButtons();
 
     }
 
@@ -36,10 +36,10 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
 
         Integer cardholderCardIdInteger = Integer.valueOf(cardholderCardId);
+        System.out.println("card holder card Id: " + cardholderCardIdInteger);
         JsonArray accountStatementJsonArray = accountStatementDatabaseAccesor.getLastAccountStatementOfCreditCard(cardholderCardIdInteger);
-
+        System.out.println("La respuesta account statement en ACCOUNTSTATEMENTCONTROLLER ES: " + accountStatementJsonArray);
         AccountStatement accountStatement = createAccountStatementFromJsonArray(accountStatementJsonArray);
-
 
         TextView cutOffDateTextView = findViewById(R.id.accountStatementCutOffDateTextView);
         cutOffDateTextView.setText(accountStatement.getCutOffDate());
@@ -79,9 +79,12 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         return accountStatement;
     }
 
-    private void setButtonsOnClickListeners() {
+    private void setOnClickListenersToButtons() {
         ImageButton deleteCardButton = findViewById(R.id.deleteCardBtn);
         deleteCardButton.setOnClickListener(this);
+
+        ImageButton showHistoryButton = findViewById(R.id.showHistoryBtn);
+        showHistoryButton.setOnClickListener(this);
 
         Button addMonthlyPaymentButton = findViewById(R.id.addMonthlyPatmentBtn);
         addMonthlyPaymentButton.setOnClickListener(this);
@@ -91,7 +94,6 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     public void onClick(View view) {
         if(userClickedDeleteCardButton(view)){
             deleteSelectedCreditCard();
-
         }
         if(userClickedAddMonthlyPaymentButton(view)) {
             EditText addPaymentTextField = findViewById(R.id.addPaymentTextField);
@@ -101,12 +103,21 @@ public class AccountStatementController extends AppCompatActivity implements Vie
                 //TODO
             }
         }
+        if(userClickedShowHistoryButton(view)){
+            startHistoryView();
+        }
 
     }
 
     private void startHomeView() {
         Intent intent = new Intent(this, HomeController.class);
         intent.putExtra("USER_EMAIL", getDataFromPreviousIntent("userEmail"));
+        startActivity(intent);
+    }
+
+    private void startHistoryView() {
+        Intent intent = new Intent(this, AccountStatementHistoryController.class);
+        intent.putExtra("cardholderCardId", getDataFromPreviousIntent("cardholderCardId"));
         startActivity(intent);
     }
 
@@ -119,9 +130,11 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
 
     private void deleteCreditCard() {
-        String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
+        String userEmail = getDataFromPreviousIntent("userEmail");
+        String creditCardProductId = getDataFromPreviousIntent("cardId");
+        System.out.println(userEmail + " aaa " + creditCardProductId);
         CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        creditCardDatabaseAccesor.deleteCardFromCardholder(cardholderCardId);
+        creditCardDatabaseAccesor.deleteCardFromCardholder(userEmail, creditCardProductId);
     }
 
     private boolean textFieldIsNotEmpty(EditText addPaymentTextField) {
@@ -131,6 +144,10 @@ public class AccountStatementController extends AppCompatActivity implements Vie
 
     private boolean userClickedAddMonthlyPaymentButton(View view) {
         return view.getId() == R.id.addMonthlyPatmentBtn;
+    }
+
+    private boolean userClickedShowHistoryButton(View view) {
+        return view.getId() == R.id.showHistoryBtn;
     }
 
     private boolean userClickedDeleteCardButton(View view) {

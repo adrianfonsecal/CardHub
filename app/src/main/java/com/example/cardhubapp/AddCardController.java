@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -89,11 +90,10 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         Float paymentForNoInterest = getFloatFromEditText(paymentForNoInterestDecimalField);
         
         if(allFieldsAreValid(currentDebt, paymentForNoInterest)){
-            System.out.println("all fields are valid");
             Integer selectedCreditCardProduct = getSelectedCreditCardProductInSpinner(creditCardProductsSpinner);
             String userEmail = getUserEmailFromPreviousIntent();
             JsonArray savedCreditCardResponse = saveCreditCard(userEmail, selectedCreditCardProduct);
-
+            System.out.println("El SAVEDCREDITCARDRESPONSE ES: " + savedCreditCardResponse);
             String todayDate = Date.getCurrentDate();
             AccountStatement firstAccountStatementOfUser = new AccountStatement(this.selectedCutOffDate, this.selectedPaymentDate, currentDebt, paymentForNoInterest);
             Integer cardholderCardId = getCardholderCardIdFromResponse(savedCreditCardResponse);
@@ -125,6 +125,7 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
 
     private Integer getCardholderCardIdFromResponse(JsonArray response) {
         JsonObject jsonObject = response.get(0).getAsJsonObject();
+        System.out.println("EL OBJETO JSON ES: " + jsonObject);
         Integer cardholderCardId = jsonObject.get("cardholder_card_id").getAsInt();
         System.out.println("el cardholder cardid en controller es: " + cardholderCardId);
         return cardholderCardId;
@@ -267,8 +268,12 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
     public void onDateSelected(String selectedDate, String dateType) {
         if (dateType.equals("cutOffDate")) {
             this.selectedCutOffDate = selectedDate;
+            TextView selectedCutOffDateTextView = findViewById(R.id.selectedCutOffDateTextView);
+            selectedCutOffDateTextView.setText(this.selectedCutOffDate);
         } else if (dateType.equals("paymentDate")) {
             this.selectedPaymentDate = selectedDate;
+            TextView selectedPaymentDateTextView = findViewById(R.id.selectedPaymentDateTextView);
+            selectedPaymentDateTextView.setText(this.selectedPaymentDate);
         }else{
             System.out.println("Error, only cut off and payment date are allowed");
         }

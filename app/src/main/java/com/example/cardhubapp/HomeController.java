@@ -49,6 +49,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
     private void inflateElements(JsonArray creditCards) {
         LinearLayout containerLayout = findViewById(R.id.containerLayout);
         List<CreditCardProduct> creditCardsList = new ArrayList<>();
+        System.out.println("Los credit cards en inflate es: " + creditCards);
 
         for (int i = 0; i < creditCards.size(); i++) {
             JsonObject creditCardJsonObject = creditCards.get(i).getAsJsonObject();
@@ -78,7 +79,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
 
     private void startAccountStatementView(CreditCardProduct creditCardProduct, JsonObject creditCardJsonObject) {
         Intent intent = new Intent(HomeController.this, AccountStatementController.class);
-        intent.putExtra("cardId", creditCardProduct.getCardId());
+        intent.putExtra("cardId", creditCardProduct.getCardId().toString());
         intent.putExtra("cardName", creditCardProduct.getName());
         intent.putExtra("bankName", creditCardProduct.getBankName());
         intent.putExtra("interestRate", String.valueOf(creditCardProduct.getInterestRate()));
@@ -98,6 +99,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
 
 
     private CreditCardProduct createCreditCardProduct(JsonObject creditCardJsonInfo) {
+        System.out.println("El credit cardJSON info es: " + creditCardJsonInfo);
         Integer cardId = creditCardJsonInfo.get("card_id").getAsInt();
         String cardName = creditCardJsonInfo.get("card_name").getAsString();
         String bankName = creditCardJsonInfo.get("bank_name").getAsString();
@@ -115,6 +117,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
     private JsonArray getAllUserCards(String userEmail){
         CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
         JsonArray creditCards = creditCardDatabaseAccesor.getAllCreditCardsFromUser(userEmail);
+        System.out.println("El credit cards en getAllUserCards es: " + creditCards);
         return creditCards;
     }
 

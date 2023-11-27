@@ -36,8 +36,8 @@ public class CreditCardDatabaseAccesor{
         return creditCardProducts;
     }
 
-    public JsonArray deleteCardFromCardholder(String cardholderCardId){
-        ArrayList param = new ArrayList(Arrays.asList(cardholderCardId));
+    public JsonArray deleteCardFromCardholder(String userEmail, String creditCardProductId){
+        ArrayList param = new ArrayList(Arrays.asList(userEmail, creditCardProductId));
         CreditCardRequestProcessor creditCardRequestProcessor = new CreditCardRequestProcessor("http://10.0.2.2:8000/remove_card_from_user_cardholder/", param);
         JsonArray creditCardProducts = creditCardRequestProcessor.executeRequest();
         System.out.println("La respuesta Json en DB fue:" + creditCardProducts);

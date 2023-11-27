@@ -65,7 +65,7 @@ public class CreditCardRequestProcessor implements InterfaceApiRequest{
     }
 
     private JsonArray executeRemoveCardFromUserCardholderRequest(HttpURLConnection connection) {
-        List<String> keys = Arrays.asList("cardholder_card_id");
+        List<String> keys = Arrays.asList("email", "card_id");
         Map<String, String> parameters = buildMap(keys, queryParameters);
         return createRequestToAPI(connection, parameters);
     }
