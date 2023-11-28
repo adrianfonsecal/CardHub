@@ -11,12 +11,16 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cardhubapp.dataaccess.AccountStatementDatabaseAccesor;
-import com.example.cardhubapp.dataaccess.CreditCardDatabaseAccesor;
+import com.example.cardhubapp.connection.requesters.Requester;
+import com.example.cardhubapp.connection.requesters.accountstatementrequester.GetLastStatementRequester;
+import com.example.cardhubapp.connection.requesters.creditcardrequester.RemoveCardFromCardholderRequester;
 import com.example.cardhubapp.model.AccountStatement;
 import com.example.cardhubapp.notification.ConfirmationDialogWindow;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AccountStatementController extends AppCompatActivity implements View.OnClickListener{
 
@@ -30,66 +34,6 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         setOnClickListenersToButtons();
 
     }
-
-    private void setValuesToAccountStatementFields() {
-        AccountStatementDatabaseAccesor accountStatementDatabaseAccesor = new AccountStatementDatabaseAccesor();
-        String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
-
-        Integer cardholderCardIdInteger = Integer.valueOf(cardholderCardId);
-        System.out.println("card holder card Id: " + cardholderCardIdInteger);
-        JsonArray accountStatementJsonArray = accountStatementDatabaseAccesor.getLastAccountStatementOfCreditCard(cardholderCardIdInteger);
-        System.out.println("La respuesta account statement en ACCOUNTSTATEMENTCONTROLLER ES: " + accountStatementJsonArray);
-        AccountStatement accountStatement = createAccountStatementFromJsonArray(accountStatementJsonArray);
-
-        TextView cutOffDateTextView = findViewById(R.id.accountStatementCutOffDateTextView);
-        cutOffDateTextView.setText(accountStatement.getCutOffDate());
-
-        TextView paymentDateTextView = findViewById(R.id.accountStatementPaymentDateTextView);
-        paymentDateTextView.setText(accountStatement.getPaymentDate());
-
-        TextView currentDebtTextView = findViewById(R.id.accountStatementCurrentDebtTextView);
-        currentDebtTextView.setText(accountStatement.getCurrentDebt().toString());
-
-        TextView paymentForNoInterestTextView = findViewById(R.id.accountStatementPaymentForNoInterestTextView);
-        paymentForNoInterestTextView.setText(accountStatement.getPaymentForNoInterest().toString());
-    }
-
-    private AccountStatement createAccountStatementFromJsonArray(JsonArray accountStatementJsonArray) {
-        AccountStatement accountStatement = null;
-        System.out.println("El accountstatement json array en controller es: " + accountStatementJsonArray);
-        for (int i = 0; i < accountStatementJsonArray.size(); i++) {
-            JsonObject jsonObject = accountStatementJsonArray.get(i).getAsJsonObject();
-
-            int statementId = jsonObject.get("statement_id").getAsInt();
-            String date = jsonObject.get("date").getAsString();
-            String cutOffDate = jsonObject.get("cut_off_date").getAsString();
-            String paymentDate = jsonObject.get("payment_date").getAsString();
-            float currentDebt = jsonObject.get("current_debt").getAsFloat();
-            float paymentForNoInterest = jsonObject.get("payment_for_no_interest").getAsFloat();
-            int cardFromCardholder = jsonObject.get("card_from_cardholder").getAsInt();
-
-            accountStatement = new AccountStatement(statementId, cutOffDate, paymentDate, currentDebt, paymentForNoInterest);
-            System.out.println(accountStatement.getId());
-            System.out.println(accountStatement.getCutOffDate());
-            System.out.println(accountStatement.getPaymentForNoInterest());
-            System.out.println(accountStatement.getCurrentDebt());
-            System.out.println(accountStatement.getPaymentDate());
-
-        }
-        return accountStatement;
-    }
-
-    private void setOnClickListenersToButtons() {
-        ImageButton deleteCardButton = findViewById(R.id.deleteCardBtn);
-        deleteCardButton.setOnClickListener(this);
-
-        ImageButton showHistoryButton = findViewById(R.id.showHistoryBtn);
-        showHistoryButton.setOnClickListener(this);
-
-        Button addMonthlyPaymentButton = findViewById(R.id.addMonthlyPatmentBtn);
-        addMonthlyPaymentButton.setOnClickListener(this);
-    }
-
     @Override
     public void onClick(View view) {
         if(userClickedDeleteCardButton(view)){
@@ -106,8 +50,46 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         if(userClickedShowHistoryButton(view)){
             startHistoryView();
         }
+    }
+
+    private void setValuesToAccountStatementFields() {
+        String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
+        ArrayList queryParameters = new ArrayList(Arrays.asList(cardholderCardId));
+        Requester getLastStatementRequester = new GetLastStatementRequester(queryParameters);
+        JsonArray accountStatementJsonArray = getLastStatementRequester.executeRequest();
+
+        AccountStatement accountStatement = createAccountStatementFromJsonArray(accountStatementJsonArray);
+        setTextsInView(accountStatement);
 
     }
+    private AccountStatement createAccountStatementFromJsonArray(JsonArray accountStatementJsonArray) {
+        AccountStatement accountStatement = null;
+        System.out.println("El accountstatement json array en controller es: " + accountStatementJsonArray);
+        for (int i = 0; i < accountStatementJsonArray.size(); i++) {
+            JsonObject jsonObject = accountStatementJsonArray.get(i).getAsJsonObject();
+
+            int statementId = jsonObject.get("statement_id").getAsInt();
+            String cutOffDate = jsonObject.get("cut_off_date").getAsString();
+            String paymentDate = jsonObject.get("payment_date").getAsString();
+            float currentDebt = jsonObject.get("current_debt").getAsFloat();
+            float paymentForNoInterest = jsonObject.get("payment_for_no_interest").getAsFloat();
+
+            accountStatement = new AccountStatement(statementId, cutOffDate, paymentDate, currentDebt, paymentForNoInterest);
+        }
+        return accountStatement;
+    }
+
+    private void setOnClickListenersToButtons() {
+        ImageButton deleteCardButton = findViewById(R.id.deleteCardBtn);
+        deleteCardButton.setOnClickListener(this);
+
+        ImageButton showHistoryButton = findViewById(R.id.showHistoryBtn);
+        showHistoryButton.setOnClickListener(this);
+
+        Button addMonthlyPaymentButton = findViewById(R.id.addMonthlyPatmentBtn);
+        addMonthlyPaymentButton.setOnClickListener(this);
+    }
+
 
     private void startHomeView() {
         Intent intent = new Intent(this, HomeController.class);
@@ -118,6 +100,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     private void startHistoryView() {
         Intent intent = new Intent(this, AccountStatementHistoryController.class);
         intent.putExtra("cardholderCardId", getDataFromPreviousIntent("cardholderCardId"));
+        intent.putExtra("cardName", getDataFromPreviousIntent("cardName"));
         startActivity(intent);
     }
 
@@ -132,9 +115,23 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     private void deleteCreditCard() {
         String userEmail = getDataFromPreviousIntent("userEmail");
         String creditCardProductId = getDataFromPreviousIntent("cardId");
-        System.out.println(userEmail + " aaa " + creditCardProductId);
-        CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        creditCardDatabaseAccesor.deleteCardFromCardholder(userEmail, creditCardProductId);
+        ArrayList queryParameters = new ArrayList(Arrays.asList(userEmail, creditCardProductId));
+        Requester removeCardFromCardholderRequester = new RemoveCardFromCardholderRequester(queryParameters);
+        removeCardFromCardholderRequester.executeRequest();
+    }
+
+    private void setTextsInView(AccountStatement accountStatement) {
+        TextView cutOffDateTextView = findViewById(R.id.accountStatementCutOffDateTextView);
+        cutOffDateTextView.setText(accountStatement.getCutOffDate());
+
+        TextView paymentDateTextView = findViewById(R.id.accountStatementPaymentDateTextView);
+        paymentDateTextView.setText(accountStatement.getPaymentDate());
+
+        TextView currentDebtTextView = findViewById(R.id.accountStatementCurrentDebtTextView);
+        currentDebtTextView.setText(accountStatement.getCurrentDebt().toString());
+
+        TextView paymentForNoInterestTextView = findViewById(R.id.accountStatementPaymentForNoInterestTextView);
+        paymentForNoInterestTextView.setText(accountStatement.getPaymentForNoInterest().toString());
     }
 
     private boolean textFieldIsNotEmpty(EditText addPaymentTextField) {
@@ -175,10 +172,6 @@ public class AccountStatementController extends AppCompatActivity implements Vie
             return null;
         }
     }
-
-
-
-
 
     private void allowSyncronousOperations() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();

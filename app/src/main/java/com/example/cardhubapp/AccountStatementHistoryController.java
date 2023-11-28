@@ -14,10 +14,15 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cardhubapp.dataaccess.AccountStatementDatabaseAccesor;
+import com.example.cardhubapp.connection.requesters.Requester;
+import com.example.cardhubapp.connection.requesters.accountstatementrequester.GetAllStatementsFromCardRequester;
+//import com.example.cardhubapp.dataaccess.AccountStatementDatabaseAccesor;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AccountStatementHistoryController extends AppCompatActivity implements View.OnClickListener{
 
@@ -34,7 +39,6 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
     private void setAccountStatementsInView() {
         JsonArray accountStatements = getAccountStatements();
         LinearLayout linearLayoutContainer = findViewById(R.id.accountStatementContainerLayout);
-        //ScrollView scrollView = findViewById(R.id.scrollView3);
         try {
             for (int i = 0; i < accountStatements.size(); i++) {
                 JsonObject jsonObject = accountStatements.get(i).getAsJsonObject();
@@ -46,7 +50,6 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
                 TextView accountStatementCurrentDebtTextView = newRow.findViewById(R.id.accountStatementCurrentDebtTextView);
                 TextView accountStatementPaymentForNoInterestTextView = newRow.findViewById(R.id.accountStatementPaymentForNoInterestTextView);
 
-                // Configura los valores de los elementos de la fila según sea necesario
                 accountStatementMonthTextView.setText("MES");
                 accountStatementCutOffDateTextView.setText(jsonObject.get("cut_off_date").getAsString());
                 accountStatementPaymentDateTextView.setText(jsonObject.get("payment_date").getAsString());
@@ -63,15 +66,16 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
     }
 
     private JsonArray getAccountStatements() {
-        AccountStatementDatabaseAccesor accountStatementDatabaseAccesor = new AccountStatementDatabaseAccesor();
-        JsonArray accountStatements = accountStatementDatabaseAccesor.getAllAccountStatementsOfCreditCard(Integer.valueOf(getDataFromPreviousIntent("cardholderCardId")));
+        String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
+        ArrayList queryParameters = new ArrayList(Arrays.asList(cardholderCardId));
+        Requester getAllStatementsFromCardRequester = new GetAllStatementsFromCardRequester(queryParameters);
+        JsonArray accountStatements = getAllStatementsFromCardRequester.executeRequest();
         return accountStatements;
     }
 
     private void setCardNameInView() {
-//        TextView creditCardName = findViewById(R.id.historyCardNameTextView);
-//        creditCardName.setText("s");
-
+        TextView creditCardName = findViewById(R.id.historyCardNameTextView);
+        creditCardName.setText(getDataFromPreviousIntent("cardName"));
     }
 
     private void setOnClickListenersToButtons() {

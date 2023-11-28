@@ -11,16 +11,16 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cardhubapp.dataaccess.CreditCardDatabaseAccesor;
+import com.example.cardhubapp.connection.requesters.creditcardrequester.GetAllUserCardsRequester;
 import com.example.cardhubapp.model.CreditCardProduct;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HomeController extends AppCompatActivity implements View.OnClickListener{
-    private JsonArray response;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,12 +29,7 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         setOnClickListenersToButtons();
         String userEmail = getUserEmailFromPreviousIntent();
         JsonArray creditCards = getAllUserCards(userEmail);
-        inflateElements(creditCards);
-    }
-
-    private void setOnClickListenersToButtons() {
-        ImageButton addCardBtn = findViewById(R.id.addCardBtn);
-        addCardBtn.setOnClickListener(this);
+        setUserCreditCardsInView(creditCards);
     }
 
     @Override
@@ -44,9 +39,11 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-
-
-    private void inflateElements(JsonArray creditCards) {
+    private void setOnClickListenersToButtons() {
+        ImageButton addCardBtn = findViewById(R.id.addCardBtn);
+        addCardBtn.setOnClickListener(this);
+    }
+    private void setUserCreditCardsInView(JsonArray creditCards) {
         LinearLayout containerLayout = findViewById(R.id.containerLayout);
         List<CreditCardProduct> creditCardsList = new ArrayList<>();
         System.out.println("Los credit cards en inflate es: " + creditCards);
@@ -83,12 +80,10 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         intent.putExtra("cardName", creditCardProduct.getName());
         intent.putExtra("bankName", creditCardProduct.getBankName());
         intent.putExtra("interestRate", String.valueOf(creditCardProduct.getInterestRate()));
-        intent.putExtra("annuity", creditCardProduct.getAnnuity());
         intent.putExtra("cardholderCardId", getCardholderIdFromCreditCard(creditCardJsonObject).toString());
         intent.putExtra("userEmail", getUserEmailFromPreviousIntent());
         startActivity(intent);
     }
-
 
     private Integer getCardholderIdFromCreditCard(JsonObject creditCardJsonObject) {
         JsonObject cardHolderCardObject = creditCardJsonObject.getAsJsonObject("card_holder_card");
@@ -96,7 +91,6 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         System.out.println("El cardholder_cards_id es: " + cardHolderCardsId);
         return cardHolderCardsId;
     }
-
 
     private CreditCardProduct createCreditCardProduct(JsonObject creditCardJsonInfo) {
         System.out.println("El credit cardJSON info es: " + creditCardJsonInfo);
@@ -109,14 +103,10 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         CreditCardProduct creditCardProduct = new CreditCardProduct(cardId, cardName, bankName, interestRate, annuity);
         return creditCardProduct;
     }
-
-    private void allowSyncronousOperations() {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-    }
     private JsonArray getAllUserCards(String userEmail){
-        CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        JsonArray creditCards = creditCardDatabaseAccesor.getAllCreditCardsFromUser(userEmail);
+        ArrayList queryParameters = new ArrayList(Arrays.asList(userEmail));
+        GetAllUserCardsRequester getAllUserCardsRequester = new GetAllUserCardsRequester(queryParameters);
+        JsonArray creditCards = getAllUserCardsRequester.executeRequest();
         System.out.println("El credit cards en getAllUserCards es: " + creditCards);
         return creditCards;
     }
@@ -136,6 +126,10 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         Intent intent = new Intent(this, AddCardController.class);
         intent.putExtra("USER_EMAIL", userEmail);
         startActivity(intent);
+    }
+    private void allowSyncronousOperations() {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
     }
 
     private boolean userClickedAddCardButton(View view) {

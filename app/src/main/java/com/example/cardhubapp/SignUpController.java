@@ -11,7 +11,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cardhubapp.connection.apirequest.UserAccessApiRequestProcessor;
+import com.example.cardhubapp.connection.requesters.Requester;
+import com.example.cardhubapp.connection.requesters.useraccessrequester.SignUpRequester;
 import com.example.cardhubapp.notification.ErrorMessageNotificator;
 import com.example.cardhubapp.validator.EmailValidator;
 import com.example.cardhubapp.validator.PasswordValidator;
@@ -31,11 +32,6 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
         setOnClickListenersToButtons();
     }
 
-    private void setOnClickListenersToButtons() {
-        Button signUpBtn = findViewById(R.id.signUpBtn);
-        signUpBtn.setOnClickListener(this);
-    }
-
     @Override
     public void onClick(View view) {
         if (userClickedSignUpButton(view)) {
@@ -49,19 +45,22 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
         String userPassword = getUserPasswordFromTextField();
 
         if(allFieldsAreValid(userName, userEmail, userPassword)){
-            JsonArray signUpResponse = signUp(userName, userEmail, userPassword);
-            boolean isSigned = isUserSignedUp(signUpResponse);
-            if(isSigned == true){
-                startLogInView();
-            }else{
-                String errorMessage = "Algo ocurrió en el proceso, lo sentimos";
-                showErrorMessage(this, errorMessage);
-            }
+            JsonArray signUpResponse = sendSignUpRequest(userName, userEmail, userPassword);
+            boolean userIsSigned = isUserSignedUp(signUpResponse);
+            verifyIfUserIsSigned(userIsSigned);
         }else{
             String errorMessage = "Por favor llene todos los campos";
             showErrorMessage(this, errorMessage);
         }
+    }
 
+    private void verifyIfUserIsSigned(boolean userIsSigned) {
+        if(userIsSigned == true){
+            startLogInView();
+        }else{
+            String errorMessage = "Algo ocurrió en el proceso, lo sentimos";
+            showErrorMessage(this, errorMessage);
+        }
     }
 
     private boolean allFieldsAreValid(String userName, String userEmail, String userPassword) {
@@ -104,10 +103,6 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
         startActivity(intent);
     }
 
-    private boolean userClickedSignUpButton(View view) {
-        return view.getId() == R.id.signUpBtn;
-    }
-
     private String getUserNameFromTextField() {
         EditText nameField = findViewById(R.id.nameField);
         String userName =  nameField.getText().toString();
@@ -126,10 +121,10 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
         return userEmail;
     }
 
-    private JsonArray signUp(String name, String email, String password) {
+    private JsonArray sendSignUpRequest(String name, String email, String password) {
         ArrayList userSignupData = new ArrayList<>(Arrays.asList(name, email, password));
-        UserAccessApiRequestProcessor userAccessApiRequestProcessor = new UserAccessApiRequestProcessor("http://10.0.2.2:8000/signup/", userSignupData);
-        JsonArray isSignedResponse = userAccessApiRequestProcessor.executeRequest();
+        Requester signUpRequester = new SignUpRequester(userSignupData);
+        JsonArray isSignedResponse = signUpRequester.executeRequest();
         return isSignedResponse;
     }
 
@@ -141,12 +136,19 @@ public class SignUpController extends AppCompatActivity implements View.OnClickL
             return  false;
         }
     }
+    private boolean userClickedSignUpButton(View view) {
+        return view.getId() == R.id.signUpBtn;
+    }
 
     private void allowSyncronousOperations() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
     }
 
+    private void setOnClickListenersToButtons() {
+        Button signUpBtn = findViewById(R.id.signUpBtn);
+        signUpBtn.setOnClickListener(this);
+    }
 
     private void showErrorMessage(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();

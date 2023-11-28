@@ -15,8 +15,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cardhubapp.dataaccess.AccountStatementDatabaseAccesor;
-import com.example.cardhubapp.dataaccess.CreditCardDatabaseAccesor;
+import com.example.cardhubapp.connection.requesters.Requester;
+import com.example.cardhubapp.connection.requesters.accountstatementrequester.CardStatementGenerator;
+import com.example.cardhubapp.connection.requesters.creditcardrequester.AddCardToUserCardholderRequester;
+import com.example.cardhubapp.connection.requesters.creditcardrequester.GetAllCardsRequester;
 import com.example.cardhubapp.model.AccountStatement;
 import com.example.cardhubapp.model.Date;
 import com.example.cardhubapp.uielements.CreditCardAdapter;
@@ -26,7 +28,9 @@ import com.example.cardhubapp.uielements.DateSelectionListener;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 
 public class AddCardController extends AppCompatActivity implements View.OnClickListener, DateSelectionListener {
@@ -41,7 +45,48 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         setCreditCardProductsForCreditCardSpinner();
         setOnClickListenersToButtons();
         setSpinnersOnClickListeners();
+    }
 
+    @Override
+    public void onClick(View view) {
+        Spinner creditCardProductsSpinner = findViewById(R.id.creditCardProductSpinner);
+        EditText currentDebtDecimalField = findViewById(R.id.currentDebtDecimalField);
+        EditText paymentForNoInterestDecimalField = findViewById(R.id.paymentForNoInterestDecimalField);
+
+        if(userClickedSaveButton(view)) {
+            saveCreditCardAndAccountStatement(creditCardProductsSpinner, currentDebtDecimalField, paymentForNoInterestDecimalField);
+        }
+        if(userClickedPaymentCalendarButton(view)) {
+            showCalendarDialog(view, "paymentDate");
+        }
+        if(userClickedCutOffCalendarButton(view)) {
+            showCalendarDialog(view, "cutOffDate");
+        }
+
+    }
+    private void saveCreditCardAndAccountStatement(Spinner creditCardProductsSpinner, EditText currentDebtDecimalField, EditText paymentForNoInterestDecimalField) {
+        Float currentDebt = getFloatFromEditText(currentDebtDecimalField);
+        Float paymentForNoInterest = getFloatFromEditText(paymentForNoInterestDecimalField);
+        
+        if(allFieldsAreValid(currentDebt, paymentForNoInterest)){
+            Integer selectedCreditCardProduct = getSelectedCreditCardProductInSpinner(creditCardProductsSpinner);
+            String userEmail = getUserEmailFromPreviousIntent();
+            JsonArray savedCreditCardResponse = saveCreditCard(userEmail, selectedCreditCardProduct);
+
+            createFirstAccountStatement(currentDebt, paymentForNoInterest, savedCreditCardResponse);
+            startHomeView(userEmail);
+        }else{
+            String message = "Por favor llene todos los campos";
+            ErrorMessageNotificator.showShortMessage(this, message);
+        }
+    }
+
+    private void createFirstAccountStatement(Float currentDebt, Float paymentForNoInterest, JsonArray savedCreditCardResponse) {
+        String todayDate = Date.getCurrentDate();
+        AccountStatement firstAccountStatementOfUser = new AccountStatement(this.selectedCutOffDate, this.selectedPaymentDate, currentDebt, paymentForNoInterest);
+        String cardholderCardId = getCardholderCardIdFromResponse(savedCreditCardResponse).toString();
+        System.out.println("El cardholderID es: " + cardholderCardId);
+        saveFirstAccountStatement(firstAccountStatementOfUser, todayDate, cardholderCardId);
     }
 
     private void showCalendarDialog(View view, String dateType) {
@@ -65,47 +110,6 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
             ((DateSelectionListener) this).onDateSelected(selectedDate, dateType);
         }
     }
-
-
-    @Override
-    public void onClick(View view) {
-        Spinner creditCardProductsSpinner = findViewById(R.id.creditCardProductSpinner);
-        EditText currentDebtDecimalField = findViewById(R.id.currentDebtDecimalField);
-        EditText paymentForNoInterestDecimalField = findViewById(R.id.paymentForNoInterestDecimalField);
-
-        if(view.getId() == R.id.saveCreditCardBtn) {
-            saveCreditCardAndAccountStatement(creditCardProductsSpinner, currentDebtDecimalField, paymentForNoInterestDecimalField);
-        }
-        if(view.getId() == R.id.paymenDateCalendarOpenerBtn) {
-            showCalendarDialog(view, "paymentDate");
-        }
-        if(view.getId() == R.id.cutOffDateCalendarOpenerBtn) {
-            showCalendarDialog(view, "cutOffDate");
-        }
-
-    }
-
-    private void saveCreditCardAndAccountStatement(Spinner creditCardProductsSpinner, EditText currentDebtDecimalField, EditText paymentForNoInterestDecimalField) {
-        Float currentDebt = getFloatFromEditText(currentDebtDecimalField);
-        Float paymentForNoInterest = getFloatFromEditText(paymentForNoInterestDecimalField);
-        
-        if(allFieldsAreValid(currentDebt, paymentForNoInterest)){
-            Integer selectedCreditCardProduct = getSelectedCreditCardProductInSpinner(creditCardProductsSpinner);
-            String userEmail = getUserEmailFromPreviousIntent();
-            JsonArray savedCreditCardResponse = saveCreditCard(userEmail, selectedCreditCardProduct);
-            System.out.println("El SAVEDCREDITCARDRESPONSE ES: " + savedCreditCardResponse);
-            String todayDate = Date.getCurrentDate();
-            AccountStatement firstAccountStatementOfUser = new AccountStatement(this.selectedCutOffDate, this.selectedPaymentDate, currentDebt, paymentForNoInterest);
-            Integer cardholderCardId = getCardholderCardIdFromResponse(savedCreditCardResponse);
-            System.out.println("El cardholderID es: " + cardholderCardId);
-            saveFirstAccountStatement(firstAccountStatementOfUser, todayDate, cardholderCardId);
-            startHomeView(userEmail);
-        }else{
-            String message = "Por favor llene todos los campos";
-            ErrorMessageNotificator.showShortMessage(this, message);
-        }
-    }
-
     private boolean allFieldsAreValid(Float currentDebt, Float paymentForNoInterest) {
         boolean isCurrentDebtValid = currentDebt != null;
         boolean isPaymentForNoInterestValid = paymentForNoInterest != null;
@@ -123,33 +127,21 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         return Float.valueOf(editTextText);
     }
 
-    private Integer getCardholderCardIdFromResponse(JsonArray response) {
+    private String getCardholderCardIdFromResponse(JsonArray response) {
         JsonObject jsonObject = response.get(0).getAsJsonObject();
-        System.out.println("EL OBJETO JSON ES: " + jsonObject);
-        Integer cardholderCardId = jsonObject.get("cardholder_card_id").getAsInt();
-        System.out.println("el cardholder cardid en controller es: " + cardholderCardId);
+        String cardholderCardId = jsonObject.get("cardholder_card_id").getAsString();
         return cardholderCardId;
     }
 
-    private Integer getCardholderCardIdFromPreviousIntent() {
-        Intent intent = getIntent();
-        Integer cardholderCardId = null;
-        if (intent != null) {
-            cardholderCardId = intent.getIntExtra("cardholderCardId", 0);
-            return cardholderCardId;
-        }else{
-            return null;
-        }
-    }
+    private void saveFirstAccountStatement(AccountStatement firstAccountStatementOfUser, String todayDate, String cardholderCardId) {
+        String accountStatementCutOffDate = firstAccountStatementOfUser.getCutOffDate();
+        String accountStatementPaymentDate = firstAccountStatementOfUser.getPaymentDate();
+        String accountStatementCurrentDebt = firstAccountStatementOfUser.getCurrentDebt().toString();
+        String accountStatementPaymentForNoInterest = firstAccountStatementOfUser.getPaymentForNoInterest().toString();
 
-    private void saveFirstAccountStatement(AccountStatement firstAccountStatementOfUser, String todayDate, Integer cardholderCardId) {
-        AccountStatementDatabaseAccesor accountStatementDatabaseAccesor = new AccountStatementDatabaseAccesor();
-        accountStatementDatabaseAccesor.saveAccountStatement(firstAccountStatementOfUser, todayDate, cardholderCardId);
-
-    }
-
-    private boolean isCalendarButtonClicked(View view){
-        return view.getId() == R.id.cutOffDateCalendarOpenerBtn || view.getId() == R.id.paymenDateCalendarOpenerBtn;
+        ArrayList queryParameters = new ArrayList(Arrays.asList(accountStatementCutOffDate, accountStatementPaymentDate, accountStatementCurrentDebt, accountStatementPaymentForNoInterest, todayDate, cardholderCardId));
+        Requester cardStatementGenerator = new CardStatementGenerator(queryParameters);
+        cardStatementGenerator.executeRequest();
     }
 
     private Integer getSelectedCreditCardProductInSpinner(Spinner spinner) {
@@ -164,10 +156,11 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         }
     }
 
-
     private JsonArray saveCreditCard(String userEmail, Integer cardId) {
-        CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        JsonArray response = creditCardDatabaseAccesor.addCardToUserCardHolder(userEmail, cardId.toString());
+        String stringCardId = cardId.toString();
+        ArrayList queryParameters = new ArrayList(Arrays.asList(userEmail, stringCardId));
+        AddCardToUserCardholderRequester addCardToUserCardholderRequester = new AddCardToUserCardholderRequester(queryParameters);
+        JsonArray response = addCardToUserCardholderRequester.executeRequest();
         System.out.println("Se salvo la tarjeta: " + cardId);
         return response;
     }
@@ -178,7 +171,6 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 handleItemSelected(parentView, position);
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
                 handleNothingSelected();
@@ -188,23 +180,13 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
 
     private void handleItemSelected(AdapterView<?> parentView, int position) {
         CreditCardProduct selectedCreditCard = (CreditCardProduct) parentView.getItemAtPosition(position);
-        int selectedCardId = selectedCreditCard.getCardId();
-        logSelectedCardId(selectedCardId);
     }
-
     private void handleNothingSelected() {
         ErrorMessageNotificator.showShortMessage(AddCardController.this, "Nada seleccionado");
     }
-
-    private void logSelectedCardId(int selectedCardId) {
-        Log.d("AddCardController", "El elemento seleccionado fue: " + selectedCardId);
-    }
-
-
     private void setCreditCardProductsForCreditCardSpinner() {
-        CreditCardDatabaseAccesor creditCardDatabaseAccesor = new CreditCardDatabaseAccesor();
-        JsonArray creditCardProducts = creditCardDatabaseAccesor.getAllCreditCardProducts();
-
+        GetAllCardsRequester getAllCardsRequester = new GetAllCardsRequester();
+        JsonArray creditCardProducts = getAllCardsRequester.executeRequest();
         try {
             ArrayList<CreditCardProduct> cardNames = new ArrayList<>();
 
@@ -278,6 +260,18 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
             System.out.println("Error, only cut off and payment date are allowed");
         }
 
+    }
+
+    private static boolean userClickedCutOffCalendarButton(View view) {
+        return view.getId() == R.id.cutOffDateCalendarOpenerBtn;
+    }
+
+    private static boolean userClickedPaymentCalendarButton(View view) {
+        return view.getId() == R.id.paymenDateCalendarOpenerBtn;
+    }
+
+    private static boolean userClickedSaveButton(View view) {
+        return view.getId() == R.id.saveCreditCardBtn;
     }
 
 }

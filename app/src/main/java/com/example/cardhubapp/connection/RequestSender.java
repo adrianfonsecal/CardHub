@@ -1,6 +1,5 @@
 package com.example.cardhubapp.connection;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 
@@ -11,36 +10,28 @@ import java.net.HttpURLConnection;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ProtocolException;
-import java.util.Map;
 
 public class RequestSender {
     private HttpURLConnection connection;
-    private Map parameters;
-    public RequestSender(HttpURLConnection connection, Map parameters){
+    private String parameters;
+    public RequestSender(HttpURLConnection connection, String parameters){
         setConnection(connection);
         setParameters(parameters);
     }
-
     public RequestSender(HttpURLConnection connection){
         setConnection(connection);
     }
-    public JsonArray createRequest(){
-        int responseCode = 0;
+    public JsonArray sendRequestToAPI(){
         JsonArray jsonResponseData = null;
-
         try {
+            prepareConnection("POST");
             if(this.parameters != null){
-                prepareConnection("POST");
-                String jsonLoginData = convertMapToJson(parameters);
-                System.out.println("api client el json para enviar es: " + jsonLoginData);
-                sendRequest(jsonLoginData);
+                sendRequest(parameters);
             }else{
-                prepareConnection("GET");
                 sendRequest();
             }
             jsonResponseData = getResponseData();
-            responseCode = connection.getResponseCode();
-            verifyResponseCode(responseCode);
+            verifyResponseCode();
             connection.disconnect();
 
         } catch (Exception e) {
@@ -70,11 +61,16 @@ public class RequestSender {
         return jsonArray;
     }
 
-    private void verifyResponseCode(int responseCode){
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            System.out.println("Connection was made succesfully");
-        } else {
-            System.out.println("Request error, code: " + responseCode);
+    private void verifyResponseCode(){
+        try {
+            Integer responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                System.out.println("Connection was made succesfully");
+            } else {
+                System.out.println("Request error, code: " + responseCode);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
     private void sendRequest(String jsonData) throws IOException, IOException {
@@ -85,7 +81,6 @@ public class RequestSender {
 
     private void sendRequest() throws IOException, IOException {
         OutputStream outputStream = connection.getOutputStream();
-
         System.out.println("entro a send data" + connection);
     }
     private void writeToOutputStream(OutputStream outputStream, String data) throws IOException {
@@ -94,21 +89,17 @@ public class RequestSender {
             outputStreamWriter.flush();
         }
     }
-    private String convertMapToJson(Map<String, String> loginData){
-        String jsonLoginData = new Gson().toJson(loginData);
-        System.out.println(jsonLoginData);
-        return jsonLoginData;
-    }
+
     private void prepareConnection(String httpMethod) throws ProtocolException {
         connection.setRequestMethod(httpMethod);
         connection.setDoOutput(true);
     }
 
-    public void setParameters(Map parameters) {
+    public void setParameters(String parameters) {
         this.parameters = parameters;
     }
 
-    public Map getParameters() {
+    public String getParameters() {
         return parameters;
     }
 
