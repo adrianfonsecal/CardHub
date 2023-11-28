@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -13,6 +15,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Agregar tarjeta"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/toolbar"
+        app:layout_constraintEnd_toEndOf="@+id/toolbar"
+        app:layout_constraintStart_toStartOf="@+id/toolbar"
+        app:layout_constraintTop_toTopOf="@+id/toolbar" />
 
     <Spinner
         android:id="@+id/creditCardProductSpinner"
@@ -110,6 +124,7 @@
         android:id="@+id/saveCreditCardBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/dark_blue"
         android:text="Guardar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -121,6 +136,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
+        android:backgroundTint="@color/dark_blue"
         android:text="Abrir calendario"
         app:layout_constraintBottom_toTopOf="@+id/currentDebtDecimalField"
         app:layout_constraintStart_toStartOf="parent"
@@ -131,6 +147,7 @@
         android:id="@+id/paymenDateCalendarOpenerBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/dark_blue"
         android:text="Abrir calendario"
         app:layout_constraintBottom_toTopOf="@+id/currentDebtDecimalField"
         app:layout_constraintEnd_toEndOf="parent"

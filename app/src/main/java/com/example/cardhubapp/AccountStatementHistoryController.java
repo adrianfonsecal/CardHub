@@ -36,6 +36,12 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
         setAccountStatementsInView();
     }
 
+    @Override
+    public void onClick(View view) {
+        //DO NOTHING
+    }
+
+
     private void setAccountStatementsInView() {
         JsonArray accountStatements = getAccountStatements();
         LinearLayout linearLayoutContainer = findViewById(R.id.accountStatementContainerLayout);
@@ -44,13 +50,11 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
                 JsonObject jsonObject = accountStatements.get(i).getAsJsonObject();
 
                 LinearLayout newRow = (LinearLayout) getLayoutInflater().inflate(R.layout.account_statement_table_row, null);
-                TextView accountStatementMonthTextView = newRow.findViewById(R.id.accountStatementMonthTextView);
                 TextView accountStatementCutOffDateTextView = newRow.findViewById(R.id.accountStatementCutOffDateTextView);
                 TextView accountStatementPaymentDateTextView = newRow.findViewById(R.id.accountStatementPaymentDateTextView);
                 TextView accountStatementCurrentDebtTextView = newRow.findViewById(R.id.accountStatementCurrentDebtTextView);
                 TextView accountStatementPaymentForNoInterestTextView = newRow.findViewById(R.id.accountStatementPaymentForNoInterestTextView);
 
-                accountStatementMonthTextView.setText("MES");
                 accountStatementCutOffDateTextView.setText(jsonObject.get("cut_off_date").getAsString());
                 accountStatementPaymentDateTextView.setText(jsonObject.get("payment_date").getAsString());
                 accountStatementCurrentDebtTextView.setText(jsonObject.get("current_debt").getAsString());
@@ -81,7 +85,6 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
     private void setOnClickListenersToButtons() {
 
     }
-
     private String getDataFromPreviousIntent(String element){
         Intent intent = getIntent();
         String foundElement = null;
@@ -92,18 +95,8 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
             return null;
         }
     }
-
-    @Override
-    public void onClick(View view) {
-
-    }
-
-
     private void allowSyncronousOperations() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
     }
-
-
-
 }

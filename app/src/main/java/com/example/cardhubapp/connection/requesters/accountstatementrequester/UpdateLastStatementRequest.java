@@ -9,17 +9,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class CardStatementGenerator extends Requester {
-    private final String endpointUrl = "http://10.0.2.2:8000/generate_card_statement/";
+public class UpdateLastStatementRequest extends Requester {
+    private final String endpointUrl = "http://10.0.2.2:8000/modify_statement/";
 
-    public CardStatementGenerator(ArrayList queryParameters) {
+    public UpdateLastStatementRequest(ArrayList queryParameters) {
         super(queryParameters);
     }
 
     @Override
     public JsonArray executeRequest() {
         HttpURLConnection connection = connectToAPI(this.endpointUrl);
-        List<String> keys = Arrays.asList("cut_off_date", "payment_date", "current_debt", "pni", "date", "card_holder_cards_id");
+        List<String> keys = Arrays.asList("statement_id", "current_debt", "payment_for_no_interest");
         Map<String, String> parameters = buildMap(keys, getQueryParameters());
         String parametersToSend = convertMapToJson(parameters);
         return createRequestToAPI(connection, parametersToSend);

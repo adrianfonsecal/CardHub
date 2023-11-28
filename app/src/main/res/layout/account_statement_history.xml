@@ -25,6 +25,7 @@
         app:layout_constraintStart_toStartOf="@+id/toolbar"
         app:layout_constraintTop_toTopOf="@+id/toolbar" />
 
+
     <TextView
         android:id="@+id/historyCardNameTextView"
         android:layout_width="wrap_content"

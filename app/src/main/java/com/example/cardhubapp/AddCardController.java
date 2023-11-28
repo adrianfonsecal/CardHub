@@ -15,11 +15,11 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cardhubapp.connection.requesters.Requester;
-import com.example.cardhubapp.connection.requesters.accountstatementrequester.CardStatementGenerator;
+import com.example.cardhubapp.connection.requesters.accountstatementrequester.GenerateCardStatementRequester;
 import com.example.cardhubapp.connection.requesters.creditcardrequester.AddCardToUserCardholderRequester;
 import com.example.cardhubapp.connection.requesters.creditcardrequester.GetAllCardsRequester;
 import com.example.cardhubapp.model.AccountStatement;
-import com.example.cardhubapp.model.date.CurrentDateProvider;
+import com.example.cardhubapp.model.date.DateService;
 import com.example.cardhubapp.uielements.CreditCardAdapter;
 import com.example.cardhubapp.model.CreditCardProduct;
 import com.example.cardhubapp.notification.ErrorMessageNotificator;
@@ -72,7 +72,7 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
             String userEmail = getUserEmailFromPreviousIntent();
             JsonArray savedCreditCardResponse = saveCreditCard(userEmail, selectedCreditCardProduct);
 
-            createFirstAccountStatement(currentDebt, paymentForNoInterest, savedCreditCardResponse);
+            createAccountStatement(currentDebt, paymentForNoInterest, savedCreditCardResponse);
             startHomeView(userEmail);
         }else{
             String message = "Por favor llene todos los campos";
@@ -80,12 +80,11 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         }
     }
 
-    private void createFirstAccountStatement(Float currentDebt, Float paymentForNoInterest, JsonArray savedCreditCardResponse) {
-        LocalDate todayDate = CurrentDateProvider.getCurrentDate();
+    private void createAccountStatement(Float currentDebt, Float paymentForNoInterest, JsonArray savedCreditCardResponse) {
+        LocalDate todayDate = DateService.getCurrentDate();
         AccountStatement firstAccountStatementOfUser = new AccountStatement(this.selectedCutOffDate, this.selectedPaymentDate, currentDebt, paymentForNoInterest);
         String cardholderCardId = getCardholderCardIdFromResponse(savedCreditCardResponse).toString();
-        System.out.println("El cardholderID es: " + cardholderCardId);
-        saveFirstAccountStatement(firstAccountStatementOfUser, todayDate.toString(), cardholderCardId);
+        saveAccountStatement(firstAccountStatementOfUser, todayDate.toString(), cardholderCardId);
     }
 
     private void showCalendarDialog(View view, String dateType) {
@@ -132,14 +131,14 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         return cardholderCardId;
     }
 
-    private void saveFirstAccountStatement(AccountStatement firstAccountStatementOfUser, String todayDate, String cardholderCardId) {
+    private void saveAccountStatement(AccountStatement firstAccountStatementOfUser, String todayDate, String cardholderCardId) {
         String accountStatementCutOffDate = firstAccountStatementOfUser.getCutOffDate();
         String accountStatementPaymentDate = firstAccountStatementOfUser.getPaymentDate();
         String accountStatementCurrentDebt = firstAccountStatementOfUser.getCurrentDebt().toString();
         String accountStatementPaymentForNoInterest = firstAccountStatementOfUser.getPaymentForNoInterest().toString();
 
         ArrayList queryParameters = new ArrayList(Arrays.asList(accountStatementCutOffDate, accountStatementPaymentDate, accountStatementCurrentDebt, accountStatementPaymentForNoInterest, todayDate, cardholderCardId));
-        Requester cardStatementGenerator = new CardStatementGenerator(queryParameters);
+        Requester cardStatementGenerator = new GenerateCardStatementRequester(queryParameters);
         cardStatementGenerator.executeRequest();
     }
 
