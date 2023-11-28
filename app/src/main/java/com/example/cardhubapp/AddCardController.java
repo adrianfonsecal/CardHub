@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -20,7 +19,7 @@ import com.example.cardhubapp.connection.requesters.accountstatementrequester.Ca
 import com.example.cardhubapp.connection.requesters.creditcardrequester.AddCardToUserCardholderRequester;
 import com.example.cardhubapp.connection.requesters.creditcardrequester.GetAllCardsRequester;
 import com.example.cardhubapp.model.AccountStatement;
-import com.example.cardhubapp.model.Date;
+import com.example.cardhubapp.model.date.CurrentDateProvider;
 import com.example.cardhubapp.uielements.CreditCardAdapter;
 import com.example.cardhubapp.model.CreditCardProduct;
 import com.example.cardhubapp.notification.ErrorMessageNotificator;
@@ -28,7 +27,7 @@ import com.example.cardhubapp.uielements.DateSelectionListener;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import java.lang.reflect.Array;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -82,11 +81,11 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
     }
 
     private void createFirstAccountStatement(Float currentDebt, Float paymentForNoInterest, JsonArray savedCreditCardResponse) {
-        String todayDate = Date.getCurrentDate();
+        LocalDate todayDate = CurrentDateProvider.getCurrentDate();
         AccountStatement firstAccountStatementOfUser = new AccountStatement(this.selectedCutOffDate, this.selectedPaymentDate, currentDebt, paymentForNoInterest);
         String cardholderCardId = getCardholderCardIdFromResponse(savedCreditCardResponse).toString();
         System.out.println("El cardholderID es: " + cardholderCardId);
-        saveFirstAccountStatement(firstAccountStatementOfUser, todayDate, cardholderCardId);
+        saveFirstAccountStatement(firstAccountStatementOfUser, todayDate.toString(), cardholderCardId);
     }
 
     private void showCalendarDialog(View view, String dateType) {

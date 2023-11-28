@@ -15,10 +15,14 @@ import com.example.cardhubapp.connection.requesters.Requester;
 import com.example.cardhubapp.connection.requesters.accountstatementrequester.GetLastStatementRequester;
 import com.example.cardhubapp.connection.requesters.creditcardrequester.RemoveCardFromCardholderRequester;
 import com.example.cardhubapp.model.AccountStatement;
+import com.example.cardhubapp.model.date.CurrentDateProvider;
+import com.example.cardhubapp.model.date.DatesComparator;
 import com.example.cardhubapp.notification.ConfirmationDialogWindow;
+import com.example.cardhubapp.notification.ErrorMessageNotificator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -43,8 +47,16 @@ public class AccountStatementController extends AppCompatActivity implements Vie
             EditText addPaymentTextField = findViewById(R.id.addPaymentTextField);
             if(textFieldIsNotEmpty(addPaymentTextField)){
                 Float periodPayment = Float.valueOf(addPaymentTextField.getText().toString());
-                //InterestCalculator
-                //TODO
+                JsonArray lastAccountStatementJson = getLastAccountStatement();
+                AccountStatement lastAccountStatement = createAccountStatementFromJsonArray(lastAccountStatementJson);
+                LocalDate currentDate = CurrentDateProvider.getCurrentDate();
+                boolean isPaymentDateExpired = DatesComparator.compareDates(currentDate.toString(), lastAccountStatement.getPaymentDate());
+                if(!isPaymentDateExpired){
+                    updateLastAccountStatement(periodPayment, lastAccountStatement);
+                }
+            }else{
+                String message = "Por favor ingrese una cantidad";
+                ErrorMessageNotificator.showShortMessage(this, message);
             }
         }
         if(userClickedShowHistoryButton(view)){
@@ -52,16 +64,31 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         }
     }
 
+    private static void updateLastAccountStatement(Float periodPayment, AccountStatement lastAccountStatement) {
+        Float newCurrentDebt = lastAccountStatement.getCurrentDebt() - periodPayment;
+        lastAccountStatement.setCurrentDebt(newCurrentDebt);
+
+        Float newPaymentForNoInterest = lastAccountStatement.getPaymentForNoInterest() - periodPayment;
+        lastAccountStatement.setPaymentForNoInterest(newPaymentForNoInterest);
+
+    }
+
     private void setValuesToAccountStatementFields() {
-        String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
-        ArrayList queryParameters = new ArrayList(Arrays.asList(cardholderCardId));
-        Requester getLastStatementRequester = new GetLastStatementRequester(queryParameters);
-        JsonArray accountStatementJsonArray = getLastStatementRequester.executeRequest();
+        JsonArray accountStatementJsonArray = getLastAccountStatement();
 
         AccountStatement accountStatement = createAccountStatementFromJsonArray(accountStatementJsonArray);
         setTextsInView(accountStatement);
 
     }
+
+    private JsonArray getLastAccountStatement() {
+        String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
+        ArrayList queryParameters = new ArrayList(Arrays.asList(cardholderCardId));
+        Requester getLastStatementRequester = new GetLastStatementRequester(queryParameters);
+        JsonArray accountStatementJsonArray = getLastStatementRequester.executeRequest();
+        return accountStatementJsonArray;
+    }
+
     private AccountStatement createAccountStatementFromJsonArray(JsonArray accountStatementJsonArray) {
         AccountStatement accountStatement = null;
         System.out.println("El accountstatement json array en controller es: " + accountStatementJsonArray);
@@ -135,7 +162,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
 
     private boolean textFieldIsNotEmpty(EditText addPaymentTextField) {
-        return !addPaymentTextField.getText().equals("");
+        return !addPaymentTextField.getText().toString().equals("");
     }
 
 

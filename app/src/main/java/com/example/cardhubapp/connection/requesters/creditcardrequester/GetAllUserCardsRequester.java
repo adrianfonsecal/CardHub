@@ -19,7 +19,6 @@ public class GetAllUserCardsRequester extends Requester {
     @Override
     public JsonArray executeRequest() {
         HttpURLConnection connection = connectToAPI(this.endpointUrl);
-
         List<String> keys = Arrays.asList("email");
         Map<String, String> parameters = buildMap(keys, getQueryParameters());
         String parametersToSend = convertMapToJson(parameters);
