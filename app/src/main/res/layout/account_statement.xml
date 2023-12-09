@@ -205,7 +205,7 @@
     </TableLayout>
 
     <Button
-        android:id="@+id/addMonthlyPatmentBtn"
+        android:id="@+id/addPeriodPaymentBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/dark_blue"
@@ -214,18 +214,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tableLayout"
-        app:layout_constraintVertical_bias="0.709" />
+        app:layout_constraintVertical_bias="0.863" />
 
     <EditText
         android:id="@+id/addPaymentTextField"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="155dp"
+        android:layout_height="46dp"
         android:ems="10"
         android:inputType="numberDecimal"
-        app:layout_constraintBottom_toTopOf="@+id/addMonthlyPatmentBtn"
+        app:layout_constraintBottom_toTopOf="@+id/addPeriodPaymentBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tableLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/tableLayout"
+        app:layout_constraintVertical_bias="0.709" />
 
     <ImageButton
         android:id="@+id/showHistoryBtn"

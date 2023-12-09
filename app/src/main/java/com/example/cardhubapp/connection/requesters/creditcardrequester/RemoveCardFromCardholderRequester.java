@@ -12,16 +12,16 @@ import java.util.Map;
 public class RemoveCardFromCardholderRequester extends Requester {
     private final String endpointUrl = "http://10.0.2.2:8000/remove_card_from_user_cardholder/";
 
-    public RemoveCardFromCardholderRequester(ArrayList queryParameters) {
-        super(queryParameters);
+    public RemoveCardFromCardholderRequester(ArrayList requestParameters) {
+        super(requestParameters);
     }
 
     @Override
     public JsonArray executeRequest() {
         HttpURLConnection connection = connectToAPI(this.endpointUrl);
         List<String> keys = Arrays.asList("email", "card_id");
-        Map<String, String> parameters = buildMap(keys, getQueryParameters());
-        String parametersToSend = convertMapToJson(parameters);
+        Map<String, String> parameters = buildMap(keys, getrequestParameters());
+        String parametersToSend = convertMapToJsonString(parameters);
         return createRequestToAPI(connection, parametersToSend);
     }
 }

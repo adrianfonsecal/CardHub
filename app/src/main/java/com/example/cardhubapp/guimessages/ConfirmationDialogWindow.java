@@ -1,4 +1,4 @@
-package com.example.cardhubapp.notification;
+package com.example.cardhubapp.guimessages;
 
 import android.app.AlertDialog;
 import android.content.Context;

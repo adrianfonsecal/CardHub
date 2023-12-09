@@ -12,16 +12,16 @@ import java.util.Map;
 public class AddCardToUserCardholderRequester extends Requester {
     private final String endpointUrl = "http://10.0.2.2:8000/add_card_to_user_cardholder/";
 
-    public AddCardToUserCardholderRequester(ArrayList queryParameters) {
-        super(queryParameters);
+    public AddCardToUserCardholderRequester(ArrayList requestParameters) {
+        super(requestParameters);
     }
 
     @Override
     public JsonArray executeRequest() {
         HttpURLConnection connection = connectToAPI(this.endpointUrl);
         List<String> keys = Arrays.asList("email", "card_id");
-        Map<String, String> parameters = buildMap(keys, getQueryParameters());
-        String parametersToSend = convertMapToJson(parameters);
+        Map<String, String> parameters = buildMap(keys, getrequestParameters());
+        String parametersToSend = convertMapToJsonString(parameters);
         return createRequestToAPI(connection, parametersToSend);
     }
 }

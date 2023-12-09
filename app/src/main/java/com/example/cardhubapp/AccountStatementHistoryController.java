@@ -35,12 +35,10 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
         setCardNameInView();
         setAccountStatementsInView();
     }
-
     @Override
     public void onClick(View view) {
-        //DO NOTHING
+        //DO NOTHING, NO BUTTONS TO HANDLE
     }
-
 
     private void setAccountStatementsInView() {
         JsonArray accountStatements = getAccountStatements();
@@ -71,8 +69,8 @@ public class AccountStatementHistoryController extends AppCompatActivity impleme
 
     private JsonArray getAccountStatements() {
         String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
-        ArrayList queryParameters = new ArrayList(Arrays.asList(cardholderCardId));
-        Requester getAllStatementsFromCardRequester = new GetAllStatementsFromCardRequester(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(cardholderCardId));
+        Requester getAllStatementsFromCardRequester = new GetAllStatementsFromCardRequester(requestParameters);
         JsonArray accountStatements = getAllStatementsFromCardRequester.executeRequest();
         return accountStatements;
     }

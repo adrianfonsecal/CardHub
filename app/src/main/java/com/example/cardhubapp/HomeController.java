@@ -59,7 +59,6 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
             containerLayout.addView(creditCardView);
         }
     }
-
     private View createCreditCardView(CreditCardProduct creditCardProduct, JsonObject creditCardJsonObject) {
         View creditCardView = LayoutInflater.from(this).inflate(R.layout.card_element, null);
 
@@ -104,8 +103,8 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
         return creditCardProduct;
     }
     private JsonArray getAllUserCards(String userEmail){
-        ArrayList queryParameters = new ArrayList(Arrays.asList(userEmail));
-        GetAllUserCardsRequester getAllUserCardsRequester = new GetAllUserCardsRequester(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(userEmail));
+        GetAllUserCardsRequester getAllUserCardsRequester = new GetAllUserCardsRequester(requestParameters);
         JsonArray creditCards = getAllUserCardsRequester.executeRequest();
         System.out.println("El credit cards en getAllUserCards es: " + creditCards);
         return creditCards;

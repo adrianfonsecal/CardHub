@@ -15,16 +15,16 @@ import java.util.Map;
 public abstract class Requester {
 
     private String endpointUrl;
-    private ArrayList queryParameters;
+    private ArrayList requestParameters;
 
-    public Requester(ArrayList queryParameters){
-        this.queryParameters = queryParameters;
+    public Requester(ArrayList requestParameters){
+        this.requestParameters = requestParameters;
     }
     public Requester(){}
     public abstract JsonArray executeRequest();
 
-    protected HttpURLConnection connectToAPI(String a){
-        HttpConnector httpConnector = new HttpConnector(a);
+    protected HttpURLConnection connectToAPI(String endpointUrl){
+        HttpConnector httpConnector = new HttpConnector(endpointUrl);
         HttpURLConnection connection;
         try {
             connection = httpConnector.openConnection();
@@ -34,8 +34,8 @@ public abstract class Requester {
         return connection;
     }
 
-    protected JsonArray createRequestToAPI(HttpURLConnection connection, String parameters) {
-        RequestSender apiClient = new RequestSender(connection, parameters);
+    protected JsonArray createRequestToAPI(HttpURLConnection connection, String requestParameters) {
+        RequestSender apiClient = new RequestSender(connection, requestParameters);
         JsonArray jsonResponse = apiClient.sendRequestToAPI();
 
         return jsonResponse;
@@ -56,8 +56,8 @@ public abstract class Requester {
         return userData;
     }
 
-    protected String convertMapToJson(Map<String, String> loginData){
-        String jsonLoginData = new Gson().toJson(loginData);
+    protected String convertMapToJsonString(Map<String, String> requestDataMap){
+        String jsonLoginData = new Gson().toJson(requestDataMap);
         System.out.println(jsonLoginData);
         return jsonLoginData;
     }
@@ -70,11 +70,11 @@ public abstract class Requester {
         this.endpointUrl = endpointUrl;
     }
 
-    public ArrayList getQueryParameters() {
-        return queryParameters;
+    public ArrayList getrequestParameters() {
+        return requestParameters;
     }
 
-    public void setQueryParameters(ArrayList queryParameters) {
-        this.queryParameters = queryParameters;
+    public void setrequestParameters(ArrayList requestParameters) {
+        this.requestParameters = requestParameters;
     }
 }

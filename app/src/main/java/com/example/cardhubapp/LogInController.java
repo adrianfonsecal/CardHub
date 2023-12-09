@@ -11,7 +11,7 @@ import android.widget.EditText;
 
 import com.example.cardhubapp.connection.requesters.useraccessrequester.LogInRequester;
 import com.example.cardhubapp.connection.requesters.Requester;
-import com.example.cardhubapp.notification.ErrorMessageNotificator;
+import com.example.cardhubapp.guimessages.ErrorMessageNotificator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -123,7 +123,5 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
     private boolean userClickedSignUpButton(View view) {
         return view.getId() == R.id.signUpBtn;
     }
-
-
 
 }

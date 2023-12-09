@@ -19,8 +19,8 @@ import com.example.cardhubapp.connection.requesters.creditcardrequester.RemoveCa
 import com.example.cardhubapp.model.AccountStatement;
 import com.example.cardhubapp.model.AccountStatementCalculator;
 import com.example.cardhubapp.model.date.DateService;
-import com.example.cardhubapp.notification.ConfirmationDialogWindow;
-import com.example.cardhubapp.notification.ErrorMessageNotificator;
+import com.example.cardhubapp.guimessages.ConfirmationDialogWindow;
+import com.example.cardhubapp.guimessages.ErrorMessageNotificator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class AccountStatementController extends AppCompatActivity implements View.OnClickListener{
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,24 +41,29 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
     @Override
     public void onClick(View view) {
-        if(userClickedDeleteCardButton(view)){
-            deleteSelectedCreditCard();
-        }
         if(userClickedAddMonthlyPaymentButton(view)) {
             EditText addPaymentTextField = findViewById(R.id.addPaymentTextField);
-            if(textFieldIsNotEmpty(addPaymentTextField)){
-                Float periodPayment = Float.valueOf(addPaymentTextField.getText().toString());
-                applyPaymentToAccountStatement(periodPayment);
-            }else{
-                String message = "Por favor ingrese una cantidad";
-                ErrorMessageNotificator.showShortMessage(this, message);
-            }
+            addPeriodPayment(addPaymentTextField);
         }
         if(userClickedShowHistoryButton(view)){
             startHistoryView();
         }
+        if(userClickedDeleteCardButton(view)){
+            deleteSelectedCreditCard();
+        }
     }
-    private void applyPaymentToAccountStatement(Float periodPayment) {
+
+    private void addPeriodPayment(EditText addPaymentTextField) {
+        if(textFieldIsNotEmpty(addPaymentTextField)){
+            Float periodPayment = Float.valueOf(addPaymentTextField.getText().toString());
+            addPaymentToAccountStatement(periodPayment);
+        }else{
+            String message = "Por favor ingrese una cantidad";
+            ErrorMessageNotificator.showShortMessage(this, message);
+        }
+    }
+
+    private void addPaymentToAccountStatement(Float periodPayment) {
         JsonArray lastAccountStatementJson = getLastAccountStatement();
         AccountStatement lastAccountStatement = createAccountStatementFromJsonArray(lastAccountStatementJson);
         LocalDate currentDate = DateService.getCurrentDate();
@@ -70,7 +74,6 @@ public class AccountStatementController extends AppCompatActivity implements Vie
             Float interestRate = Float.valueOf(getDataFromPreviousIntent("interestRate"));
             createNewAccountStatement(periodPayment, lastAccountStatement, interestRate);
         }
-
     }
 
     private void createNewAccountStatement(Float periodPayment, AccountStatement lastAccountStatement, Float interestRate) {
@@ -86,12 +89,11 @@ public class AccountStatementController extends AppCompatActivity implements Vie
 
         saveAccountStatement(newCutOffDate, newPaymentDate, newCurrentDebt, newPaymentForNoInterestDebt, currentDate, cardFromCardHolder);
     }
-    private void saveAccountStatement(String newCutOffDate, String newPaymentDate, String currentDebt, String paymentForNoInterest, String currentDate, String cardholderCardId) {
-        ArrayList queryParameters = new ArrayList(Arrays.asList(newCutOffDate, newPaymentDate, currentDebt, paymentForNoInterest, currentDate, cardholderCardId));
-        GenerateCardStatementRequester cardStatementGenerator = new GenerateCardStatementRequester(queryParameters);
-
+    private JsonArray saveAccountStatement(String newCutOffDate, String newPaymentDate, String currentDebt, String paymentForNoInterest, String currentDate, String cardholderCardId) {
+        ArrayList requestParameters = new ArrayList(Arrays.asList(newCutOffDate, newPaymentDate, currentDebt, paymentForNoInterest, currentDate, cardholderCardId));
+        GenerateCardStatementRequester cardStatementGenerator = new GenerateCardStatementRequester(requestParameters);
         JsonArray createdCardStatementResponse = cardStatementGenerator.executeRequest();
-        System.out.println("Se genero un nuevo card statement: " + createdCardStatementResponse);
+        return createdCardStatementResponse;
     }
 
     private JsonArray updateLastAccountStatement(Float periodPayment, AccountStatement lastAccountStatement) {
@@ -103,8 +105,8 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
 
     private JsonArray sendUpdateAccountStatementRequest(String updatedCurrentDebt, String updatedPaymentForNoInterestDebt, String statementId) {
-        ArrayList queryParameters = new ArrayList(Arrays.asList(statementId, updatedCurrentDebt, updatedPaymentForNoInterestDebt));
-        Requester updateLastStatementRequest = new UpdateLastStatementRequest(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(statementId, updatedCurrentDebt, updatedPaymentForNoInterestDebt));
+        Requester updateLastStatementRequest = new UpdateLastStatementRequest(requestParameters);
         JsonArray updatedAccountStatementResponse = updateLastStatementRequest.executeRequest();
         return updatedAccountStatementResponse;
     }
@@ -117,8 +119,8 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
     private JsonArray getLastAccountStatement() {
         String cardholderCardId = getDataFromPreviousIntent("cardholderCardId");
-        ArrayList queryParameters = new ArrayList(Arrays.asList(cardholderCardId));
-        Requester getLastStatementRequester = new GetLastStatementRequester(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(cardholderCardId));
+        Requester getLastStatementRequester = new GetLastStatementRequester(requestParameters);
         JsonArray accountStatementJsonArray = getLastStatementRequester.executeRequest();
         return accountStatementJsonArray;
     }
@@ -147,10 +149,10 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         ImageButton showHistoryButton = findViewById(R.id.showHistoryBtn);
         showHistoryButton.setOnClickListener(this);
 
-        Button addMonthlyPaymentButton = findViewById(R.id.addMonthlyPatmentBtn);
+        Button addMonthlyPaymentButton = findViewById(R.id.addPeriodPaymentBtn);
         addMonthlyPaymentButton.setOnClickListener(this);
-    }
 
+    }
 
     private void startHomeView() {
         Intent intent = new Intent(this, HomeController.class);
@@ -176,8 +178,8 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     private void deleteCreditCard() {
         String userEmail = getDataFromPreviousIntent("userEmail");
         String creditCardProductId = getDataFromPreviousIntent("cardId");
-        ArrayList queryParameters = new ArrayList(Arrays.asList(userEmail, creditCardProductId));
-        Requester removeCardFromCardholderRequester = new RemoveCardFromCardholderRequester(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(userEmail, creditCardProductId));
+        Requester removeCardFromCardholderRequester = new RemoveCardFromCardholderRequester(requestParameters);
         removeCardFromCardholderRequester.executeRequest();
     }
 
@@ -229,7 +231,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
 
 
     private boolean userClickedAddMonthlyPaymentButton(View view) {
-        return view.getId() == R.id.addMonthlyPatmentBtn;
+        return view.getId() == R.id.addPeriodPaymentBtn;
     }
 
     private boolean userClickedShowHistoryButton(View view) {
@@ -239,5 +241,6 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     private boolean userClickedDeleteCardButton(View view) {
         return view.getId() == R.id.deleteCardBtn;
     }
+
 
 }

@@ -1,7 +1,5 @@
 package com.example.cardhubapp.model;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 public class AccountStatementCalculator {
     public static Float calculateCurrentDebt(Float periodPayment, Float currentDebt){

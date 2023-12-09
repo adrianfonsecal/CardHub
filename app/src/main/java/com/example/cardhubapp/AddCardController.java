@@ -22,8 +22,8 @@ import com.example.cardhubapp.model.AccountStatement;
 import com.example.cardhubapp.model.date.DateService;
 import com.example.cardhubapp.uielements.CreditCardAdapter;
 import com.example.cardhubapp.model.CreditCardProduct;
-import com.example.cardhubapp.notification.ErrorMessageNotificator;
-import com.example.cardhubapp.uielements.DateSelectionListener;
+import com.example.cardhubapp.guimessages.ErrorMessageNotificator;
+import com.example.cardhubapp.uielements.InterfaceDateSelectionListener;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
-public class AddCardController extends AppCompatActivity implements View.OnClickListener, DateSelectionListener {
+public class AddCardController extends AppCompatActivity implements View.OnClickListener, InterfaceDateSelectionListener {
 
     private String selectedCutOffDate;
     private String selectedPaymentDate;
@@ -104,8 +104,8 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
     }
 
     private void notifyDateSelected(String selectedDate, String dateType) {
-        if (this instanceof DateSelectionListener) {
-            ((DateSelectionListener) this).onDateSelected(selectedDate, dateType);
+        if (this instanceof InterfaceDateSelectionListener) {
+            ((InterfaceDateSelectionListener) this).onDateSelected(selectedDate, dateType);
         }
     }
     private boolean allFieldsAreValid(Float currentDebt, Float paymentForNoInterest) {
@@ -137,8 +137,8 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         String accountStatementCurrentDebt = firstAccountStatementOfUser.getCurrentDebt().toString();
         String accountStatementPaymentForNoInterest = firstAccountStatementOfUser.getPaymentForNoInterest().toString();
 
-        ArrayList queryParameters = new ArrayList(Arrays.asList(accountStatementCutOffDate, accountStatementPaymentDate, accountStatementCurrentDebt, accountStatementPaymentForNoInterest, todayDate, cardholderCardId));
-        Requester cardStatementGenerator = new GenerateCardStatementRequester(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(accountStatementCutOffDate, accountStatementPaymentDate, accountStatementCurrentDebt, accountStatementPaymentForNoInterest, todayDate, cardholderCardId));
+        Requester cardStatementGenerator = new GenerateCardStatementRequester(requestParameters);
         cardStatementGenerator.executeRequest();
     }
 
@@ -156,8 +156,8 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
 
     private JsonArray saveCreditCard(String userEmail, Integer cardId) {
         String stringCardId = cardId.toString();
-        ArrayList queryParameters = new ArrayList(Arrays.asList(userEmail, stringCardId));
-        AddCardToUserCardholderRequester addCardToUserCardholderRequester = new AddCardToUserCardholderRequester(queryParameters);
+        ArrayList requestParameters = new ArrayList(Arrays.asList(userEmail, stringCardId));
+        AddCardToUserCardholderRequester addCardToUserCardholderRequester = new AddCardToUserCardholderRequester(requestParameters);
         JsonArray response = addCardToUserCardholderRequester.executeRequest();
         System.out.println("Se salvo la tarjeta: " + cardId);
         return response;
@@ -187,7 +187,6 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
         JsonArray creditCardProducts = getAllCardsRequester.executeRequest();
         try {
             ArrayList<CreditCardProduct> cardNames = new ArrayList<>();
-
             for (int i = 0; i < creditCardProducts.size(); i++) {
                 JsonObject jsonObject = creditCardProducts.get(i).getAsJsonObject();
                 Integer cardId = jsonObject.get("card_id").getAsInt();
@@ -199,7 +198,6 @@ public class AddCardController extends AppCompatActivity implements View.OnClick
                 System.out.println("Agregando el cardId al Spinner: " + cardId);
                 cardNames.add(creditCardProduct);
             }
-
             Spinner creditCardProductSpinner = findViewById(R.id.creditCardProductSpinner);
             CreditCardAdapter adapter = new CreditCardAdapter(this, cardNames);
             creditCardProductSpinner.setAdapter(adapter);

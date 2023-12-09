@@ -13,10 +13,10 @@ import java.net.ProtocolException;
 
 public class RequestSender {
     private HttpURLConnection connection;
-    private String parameters;
+    private String requestParameters;
     public RequestSender(HttpURLConnection connection, String parameters){
         setConnection(connection);
-        setParameters(parameters);
+        setrequestParameters(parameters);
     }
     public RequestSender(HttpURLConnection connection){
         setConnection(connection);
@@ -25,8 +25,8 @@ public class RequestSender {
         JsonArray jsonResponseData = null;
         try {
             prepareConnection("POST");
-            if(this.parameters != null){
-                sendRequest(parameters);
+            if(this.requestParameters != null){
+                sendRequest(requestParameters);
             }else{
                 sendRequest();
             }
@@ -95,12 +95,12 @@ public class RequestSender {
         connection.setDoOutput(true);
     }
 
-    public void setParameters(String parameters) {
-        this.parameters = parameters;
+    public void setrequestParameters(String requestParameters) {
+        this.requestParameters = requestParameters;
     }
 
-    public String getParameters() {
-        return parameters;
+    public String getrequestParameters() {
+        return requestParameters;
     }
 
     public HttpURLConnection getConnection() {

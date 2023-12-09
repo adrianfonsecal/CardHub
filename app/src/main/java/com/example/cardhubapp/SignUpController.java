@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cardhubapp.connection.requesters.Requester;
 import com.example.cardhubapp.connection.requesters.useraccessrequester.SignUpRequester;
-import com.example.cardhubapp.notification.ErrorMessageNotificator;
+import com.example.cardhubapp.guimessages.ErrorMessageNotificator;
 import com.example.cardhubapp.validator.EmailValidator;
 import com.example.cardhubapp.validator.PasswordValidator;
 import com.google.gson.JsonArray;
