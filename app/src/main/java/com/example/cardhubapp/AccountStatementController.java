@@ -37,7 +37,6 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         setValuesToCreditCardProductFields();
         setValuesToAccountStatementFields();
         setOnClickListenersToButtons();
-
     }
     @Override
     public void onClick(View view) {
@@ -66,31 +65,32 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     private void addPaymentToAccountStatement(Float periodPayment) {
         JsonArray lastAccountStatementJson = getLastAccountStatement();
         AccountStatement lastAccountStatement = createAccountStatementFromJsonArray(lastAccountStatementJson);
-        LocalDate currentDate = DateService.getCurrentDate();
+        String currentDate = DateService.getCurrentDate().toString();
         boolean isPaymentDateExpired = DateService.compareDates(currentDate.toString(), lastAccountStatement.getPaymentDate());
-        if(!isPaymentDateExpired){
+        if(paymentDateIsNotExpired(isPaymentDateExpired)){
             updateLastAccountStatement(periodPayment, lastAccountStatement);
         }else{
             Float interestRate = Float.valueOf(getDataFromPreviousIntent("interestRate"));
-            createNewAccountStatement(periodPayment, lastAccountStatement, interestRate);
+            String cardFromCardHolder = getDataFromPreviousIntent("cardholderCardId").toString();
+            AccountStatement newAccountStatement = createNewAccountStatement(periodPayment, lastAccountStatement, interestRate);
+            saveAccountStatement(newAccountStatement, currentDate, cardFromCardHolder);
         }
     }
 
-    private void createNewAccountStatement(Float periodPayment, AccountStatement lastAccountStatement, Float interestRate) {
+    private AccountStatement createNewAccountStatement(Float periodPayment, AccountStatement lastAccountStatement, Float interestRate) {
         Float currentDebt = lastAccountStatement.getCurrentDebt();
         Float paymentForNoInterest = lastAccountStatement.getPaymentForNoInterest();
-        String newCurrentDebt = AccountStatementCalculator.calculateExpiredCurrentDebt(periodPayment, currentDebt, interestRate).toString();
-        String newPaymentForNoInterestDebt = AccountStatementCalculator.calculateExpiredPaymentForNoInterest(periodPayment, paymentForNoInterest, interestRate).toString();
+        Float newCurrentDebt = AccountStatementCalculator.calculateExpiredCurrentDebt(periodPayment, currentDebt, interestRate);
+        Float newPaymentForNoInterestDebt = AccountStatementCalculator.calculateExpiredPaymentForNoInterest(periodPayment, paymentForNoInterest, interestRate);
 
-        String currentDate = DateService.getCurrentDate().toString();
         String newCutOffDate = DateService.addOneMonthToFormattedDate(lastAccountStatement.getCutOffDate());
         String newPaymentDate = DateService.addOneMonthToFormattedDate(lastAccountStatement.getPaymentDate());
-        String cardFromCardHolder = getDataFromPreviousIntent("cardholderCardId").toString();
 
-        saveAccountStatement(newCutOffDate, newPaymentDate, newCurrentDebt, newPaymentForNoInterestDebt, currentDate, cardFromCardHolder);
+        AccountStatement newAccountStatement = new AccountStatement(newCutOffDate, newPaymentDate, newCurrentDebt, newPaymentForNoInterestDebt);
+        return newAccountStatement;
     }
-    private JsonArray saveAccountStatement(String newCutOffDate, String newPaymentDate, String currentDebt, String paymentForNoInterest, String currentDate, String cardholderCardId) {
-        ArrayList requestParameters = new ArrayList(Arrays.asList(newCutOffDate, newPaymentDate, currentDebt, paymentForNoInterest, currentDate, cardholderCardId));
+    private JsonArray saveAccountStatement(AccountStatement accountStatementToSave, String currentDate, String cardholderCardId) {
+        ArrayList requestParameters = new ArrayList(Arrays.asList(accountStatementToSave.getCutOffDate().toString(), accountStatementToSave.getPaymentDate().toString(), accountStatementToSave.getCurrentDebt().toString(), accountStatementToSave.getPaymentForNoInterest().toString(), currentDate, cardholderCardId));
         GenerateCardStatementRequester cardStatementGenerator = new GenerateCardStatementRequester(requestParameters);
         JsonArray createdCardStatementResponse = cardStatementGenerator.executeRequest();
         return createdCardStatementResponse;
@@ -113,6 +113,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
 
     private void setValuesToAccountStatementFields() {
         JsonArray accountStatementJsonArray = getLastAccountStatement();
+        System.out.println("EL last accountstatement es: " + accountStatementJsonArray);
         AccountStatement accountStatement = createAccountStatementFromJsonArray(accountStatementJsonArray);
         setTextsInView(accountStatement);
 
@@ -126,19 +127,18 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
 
     private AccountStatement createAccountStatementFromJsonArray(JsonArray accountStatementJsonArray) {
+        final int FIRST_ACCOUNT_STATEMENT = 0;
         AccountStatement accountStatement = null;
         System.out.println("El accountstatement json array en controller es: " + accountStatementJsonArray);
-        for (int i = 0; i < accountStatementJsonArray.size(); i++) {
-            JsonObject jsonObject = accountStatementJsonArray.get(i).getAsJsonObject();
+        JsonObject accountStatementJsonObject = accountStatementJsonArray.get(FIRST_ACCOUNT_STATEMENT).getAsJsonObject();
 
-            int statementId = jsonObject.get("statement_id").getAsInt();
-            String cutOffDate = jsonObject.get("cut_off_date").getAsString();
-            String paymentDate = jsonObject.get("payment_date").getAsString();
-            float currentDebt = jsonObject.get("current_debt").getAsFloat();
-            float paymentForNoInterest = jsonObject.get("payment_for_no_interest").getAsFloat();
+        int statementId = accountStatementJsonObject.get("statement_id").getAsInt();
+        String cutOffDate = accountStatementJsonObject.get("cut_off_date").getAsString();
+        String paymentDate = accountStatementJsonObject.get("payment_date").getAsString();
+        float currentDebt = accountStatementJsonObject.get("current_debt").getAsFloat();
+        float paymentForNoInterest = accountStatementJsonObject.get("payment_for_no_interest").getAsFloat();
 
-            accountStatement = new AccountStatement(statementId, cutOffDate, paymentDate, currentDebt, paymentForNoInterest);
-        }
+        accountStatement = new AccountStatement(statementId, cutOffDate, paymentDate, currentDebt, paymentForNoInterest);
         return accountStatement;
     }
 
@@ -207,7 +207,9 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         TextView interestRateTextView = findViewById(R.id.interestRateEditTextView);
         interestRateTextView.setText(String.valueOf(getDataFromPreviousIntent("interestRate")));
     }
-
+    private boolean paymentDateIsNotExpired(boolean isPaymentDateExpired) {
+        return !isPaymentDateExpired;
+    }
     private String getDataFromPreviousIntent(String element){
         Intent intent = getIntent();
         String foundElement = null;

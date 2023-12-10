@@ -16,11 +16,11 @@ public class DateService {
         return nextMonth.format(outputFormatter);
     }
 
-    public static boolean compareDates(String firstDate, String secondDate) {
-        LocalDate date1 = LocalDate.parse(firstDate, DateTimeFormatter.ISO_LOCAL_DATE);
-        LocalDate date2 = LocalDate.parse(secondDate, DateTimeFormatter.ISO_LOCAL_DATE);
+    public static boolean compareDates(String date1, String date2) {
+        LocalDate firstDate = LocalDate.parse(date1, DateTimeFormatter.ISO_LOCAL_DATE);
+        LocalDate secondDate = LocalDate.parse(date2, DateTimeFormatter.ISO_LOCAL_DATE);
 
-        if (date1.isBefore(date2) || date1.isEqual(date2)) {
+        if (firstDate.isBefore(secondDate) || firstDate.isEqual(secondDate)) {
             return false;
         } else{
             return true;
