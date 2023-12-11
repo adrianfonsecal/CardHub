@@ -47,7 +47,6 @@ public class RequestSender {
             StringBuilder response = new StringBuilder();
             String responseLine;
             while ((responseLine = br.readLine()) != null) {
-                System.out.println("responseLine: " + responseLine);
                 response.append(responseLine.trim());
             }
 
@@ -57,7 +56,6 @@ public class RequestSender {
         }catch (Exception e){
             e.printStackTrace();
         }
-        System.out.println("Respuesta del servidor ApiClient: " + jsonArray);
         return jsonArray;
     }
 
@@ -65,9 +63,7 @@ public class RequestSender {
         try {
             Integer responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                System.out.println("Connection was made succesfully");
             } else {
-                System.out.println("Request error, code: " + responseCode);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

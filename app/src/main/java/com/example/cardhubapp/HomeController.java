@@ -46,7 +46,6 @@ public class HomeController extends AppCompatActivity implements View.OnClickLis
     private void setUserCreditCardsInView(JsonArray creditCards) {
         LinearLayout containerLayout = findViewById(R.id.containerLayout);
         List<CreditCardProduct> creditCardsList = new ArrayList<>();
-        System.out.println("Los credit cards en inflate es: " + creditCards);
 
         for (int i = 0; i < creditCards.size(); i++) {
             JsonObject creditCardJsonObject = creditCards.get(i).getAsJsonObject();

@@ -4,8 +4,8 @@ import java.time.format.DateTimeFormatter;
 
 public class DateService {
 
-    public static LocalDate getCurrentDate() {
-        LocalDate currentDate = LocalDate.now();
+    public static String getCurrentDate() {
+        String currentDate = LocalDate.now().toString();
         return currentDate;
     }
     public static String addOneMonthToFormattedDate(String inputDate) {

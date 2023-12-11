@@ -18,13 +18,13 @@ import com.example.cardhubapp.connection.requesters.accountstatementrequester.Up
 import com.example.cardhubapp.connection.requesters.creditcardrequester.RemoveCardFromCardholderRequester;
 import com.example.cardhubapp.model.AccountStatement;
 import com.example.cardhubapp.model.AccountStatementCalculator;
+import com.example.cardhubapp.model.TransactionType;
 import com.example.cardhubapp.model.date.DateService;
 import com.example.cardhubapp.guimessages.ConfirmationDialogWindow;
 import com.example.cardhubapp.guimessages.ErrorMessageNotificator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -40,9 +40,13 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
     @Override
     public void onClick(View view) {
-        if(userClickedAddMonthlyPaymentButton(view)) {
-            EditText addPaymentTextField = findViewById(R.id.addPaymentTextField);
-            addPeriodPayment(addPaymentTextField);
+        if(userClickedAddExpenseButton(view)){
+            addPeriodExpense();
+            startHomeView();
+        }
+        if(userClickedAddPaymentButton(view)) {
+            addPeriodPayment();
+            startHomeView();
         }
         if(userClickedShowHistoryButton(view)){
             startHistoryView();
@@ -52,7 +56,8 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         }
     }
 
-    private void addPeriodPayment(EditText addPaymentTextField) {
+    private void addPeriodPayment() {
+        EditText addPaymentTextField = findViewById(R.id.addPaymentNumberField);
         if(textFieldIsNotEmpty(addPaymentTextField)){
             Float periodPayment = Float.valueOf(addPaymentTextField.getText().toString());
             addPaymentToAccountStatement(periodPayment);
@@ -62,26 +67,53 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         }
     }
 
+    private void addPeriodExpense() {
+        EditText addExpenseTextField = findViewById(R.id.addExpenseNumberField);
+        if(textFieldIsNotEmpty(addExpenseTextField)){
+            Float periodExpense = Float.valueOf(addExpenseTextField.getText().toString());
+            addExpenseToAccountStatement(periodExpense);
+        }else{
+            String message = "Por favor ingrese una cantidad";
+            ErrorMessageNotificator.showShortMessage(this, message);
+        }
+    }
+
+    private void generateAccountStatement(Float periodPayment, AccountStatement lastAccountStatement, TransactionType payment, String currentDate) {
+        Float interestRate = Float.valueOf(getDataFromPreviousIntent("interestRate"));
+        String cardFromCardHolder = getDataFromPreviousIntent("cardholderCardId").toString();
+        AccountStatement newAccountStatement = createNewAccountStatement(periodPayment, lastAccountStatement, interestRate, payment);
+        sendGenerateAccountStatementRequest(newAccountStatement, currentDate, cardFromCardHolder);
+    }
+
     private void addPaymentToAccountStatement(Float periodPayment) {
         JsonArray lastAccountStatementJson = getLastAccountStatement();
         AccountStatement lastAccountStatement = createAccountStatementFromJsonArray(lastAccountStatementJson);
         String currentDate = DateService.getCurrentDate().toString();
         boolean isPaymentDateExpired = DateService.compareDates(currentDate.toString(), lastAccountStatement.getPaymentDate());
         if(paymentDateIsNotExpired(isPaymentDateExpired)){
-            updateLastAccountStatement(periodPayment, lastAccountStatement);
+            updateLastAccountStatementToAddPayment(periodPayment, lastAccountStatement);
         }else{
-            Float interestRate = Float.valueOf(getDataFromPreviousIntent("interestRate"));
-            String cardFromCardHolder = getDataFromPreviousIntent("cardholderCardId").toString();
-            AccountStatement newAccountStatement = createNewAccountStatement(periodPayment, lastAccountStatement, interestRate);
-            saveAccountStatement(newAccountStatement, currentDate, cardFromCardHolder);
+            generateAccountStatement(periodPayment, lastAccountStatement, TransactionType.PAYMENT, currentDate);
         }
     }
 
-    private AccountStatement createNewAccountStatement(Float periodPayment, AccountStatement lastAccountStatement, Float interestRate) {
+    private void addExpenseToAccountStatement(Float periodPayment) {
+        JsonArray lastAccountStatementJson = getLastAccountStatement();
+        AccountStatement lastAccountStatement = createAccountStatementFromJsonArray(lastAccountStatementJson);
+        String currentDate = DateService.getCurrentDate().toString();
+        boolean isPaymentDateExpired = DateService.compareDates(currentDate.toString(), lastAccountStatement.getPaymentDate());
+        if(paymentDateIsNotExpired(isPaymentDateExpired)){
+            updateLastAccountStatementToAddExpense(periodPayment, lastAccountStatement);
+        }else{
+            generateAccountStatement(periodPayment, lastAccountStatement, TransactionType.EXPENSE, currentDate);
+        }
+    }
+
+    private AccountStatement createNewAccountStatement(Float periodPayment, AccountStatement lastAccountStatement, Float interestRate, TransactionType transactionType) {
         Float currentDebt = lastAccountStatement.getCurrentDebt();
         Float paymentForNoInterest = lastAccountStatement.getPaymentForNoInterest();
-        Float newCurrentDebt = AccountStatementCalculator.calculateExpiredCurrentDebt(periodPayment, currentDebt, interestRate);
-        Float newPaymentForNoInterestDebt = AccountStatementCalculator.calculateExpiredPaymentForNoInterest(periodPayment, paymentForNoInterest, interestRate);
+        Float newCurrentDebt = AccountStatementCalculator.calculateExpiredCurrentDebt(periodPayment, currentDebt, paymentForNoInterest, interestRate, transactionType);
+        Float newPaymentForNoInterestDebt = AccountStatementCalculator.calculateExpiredPaymentForNoInterest(periodPayment, paymentForNoInterest, interestRate, transactionType);
 
         String newCutOffDate = DateService.addOneMonthToFormattedDate(lastAccountStatement.getCutOffDate());
         String newPaymentDate = DateService.addOneMonthToFormattedDate(lastAccountStatement.getPaymentDate());
@@ -89,16 +121,24 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         AccountStatement newAccountStatement = new AccountStatement(newCutOffDate, newPaymentDate, newCurrentDebt, newPaymentForNoInterestDebt);
         return newAccountStatement;
     }
-    private JsonArray saveAccountStatement(AccountStatement accountStatementToSave, String currentDate, String cardholderCardId) {
+    private JsonArray sendGenerateAccountStatementRequest(AccountStatement accountStatementToSave, String currentDate, String cardholderCardId) {
         ArrayList requestParameters = new ArrayList(Arrays.asList(accountStatementToSave.getCutOffDate().toString(), accountStatementToSave.getPaymentDate().toString(), accountStatementToSave.getCurrentDebt().toString(), accountStatementToSave.getPaymentForNoInterest().toString(), currentDate, cardholderCardId));
         GenerateCardStatementRequester cardStatementGenerator = new GenerateCardStatementRequester(requestParameters);
         JsonArray createdCardStatementResponse = cardStatementGenerator.executeRequest();
         return createdCardStatementResponse;
     }
 
-    private JsonArray updateLastAccountStatement(Float periodPayment, AccountStatement lastAccountStatement) {
-        String updatedCurrentDebt = AccountStatementCalculator.calculateCurrentDebt(periodPayment, lastAccountStatement.getCurrentDebt()).toString();
-        String updatedPaymentForNoInterestDebt = AccountStatementCalculator.calculatePaymentForNoInterest(periodPayment, lastAccountStatement.getPaymentForNoInterest()).toString();
+    private JsonArray updateLastAccountStatementToAddPayment(Float periodPayment, AccountStatement lastAccountStatement) {
+        String updatedCurrentDebt = AccountStatementCalculator.calculateCurrentDebt(periodPayment, lastAccountStatement.getCurrentDebt(), TransactionType.PAYMENT).toString();
+        String updatedPaymentForNoInterestDebt = AccountStatementCalculator.calculatePaymentForNoInterest(periodPayment, lastAccountStatement.getPaymentForNoInterest(), TransactionType.PAYMENT).toString();
+        String statementId = lastAccountStatement.getId().toString();
+        JsonArray updatedAccountStatementResponse = sendUpdateAccountStatementRequest(updatedCurrentDebt, updatedPaymentForNoInterestDebt, statementId);
+        return updatedAccountStatementResponse;
+    }
+
+    private JsonArray updateLastAccountStatementToAddExpense(Float periodPayment, AccountStatement lastAccountStatement) {
+        String updatedCurrentDebt = AccountStatementCalculator.calculateCurrentDebt(periodPayment, lastAccountStatement.getCurrentDebt(), TransactionType.EXPENSE).toString();
+        String updatedPaymentForNoInterestDebt = AccountStatementCalculator.calculatePaymentForNoInterest(periodPayment, lastAccountStatement.getPaymentForNoInterest(), TransactionType.EXPENSE).toString();
         String statementId = lastAccountStatement.getId().toString();
         JsonArray updatedAccountStatementResponse = sendUpdateAccountStatementRequest(updatedCurrentDebt, updatedPaymentForNoInterestDebt, statementId);
         return updatedAccountStatementResponse;
@@ -151,6 +191,9 @@ public class AccountStatementController extends AppCompatActivity implements Vie
 
         Button addMonthlyPaymentButton = findViewById(R.id.addPeriodPaymentBtn);
         addMonthlyPaymentButton.setOnClickListener(this);
+
+        Button addMonthlyExpenseButton = findViewById(R.id.addPeriodExpenseBtn);
+        addMonthlyExpenseButton.setOnClickListener(this);
 
     }
 
@@ -221,6 +264,7 @@ public class AccountStatementController extends AppCompatActivity implements Vie
         }
     }
 
+
     private void allowSyncronousOperations() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -232,8 +276,12 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     }
 
 
-    private boolean userClickedAddMonthlyPaymentButton(View view) {
+    private boolean userClickedAddPaymentButton(View view) {
         return view.getId() == R.id.addPeriodPaymentBtn;
+    }
+
+    private boolean userClickedAddExpenseButton(View view) {
+        return view.getId() == R.id.addPeriodExpenseBtn;
     }
 
     private boolean userClickedShowHistoryButton(View view) {
@@ -243,6 +291,5 @@ public class AccountStatementController extends AppCompatActivity implements Vie
     private boolean userClickedDeleteCardButton(View view) {
         return view.getId() == R.id.deleteCardBtn;
     }
-
 
 }

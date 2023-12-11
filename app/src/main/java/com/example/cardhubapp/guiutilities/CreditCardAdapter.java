@@ -1,4 +1,4 @@
-package com.example.cardhubapp.uielements;
+package com.example.cardhubapp.guiutilities;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;

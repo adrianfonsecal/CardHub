@@ -82,7 +82,6 @@ public class LogInController extends AppCompatActivity implements View.OnClickLi
     private void startHomeView(String userEmail, String userPassword) {
         Intent intent = new Intent(this, HomeController.class);
         intent.putExtra("USER_EMAIL", userEmail);
-        intent.putExtra("USER_PASSWORD", userPassword);
         startActivity(intent);
     }
 

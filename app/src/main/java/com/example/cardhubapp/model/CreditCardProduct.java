@@ -7,6 +7,7 @@ public class CreditCardProduct {
     private String bankName;
     private float interestRate;
     private float annuity;
+
     public CreditCardProduct(int cardId, String name, String bankName, float interestRate, float annuity){
         setCardId(cardId);
         setName(name);
@@ -18,6 +19,7 @@ public class CreditCardProduct {
     public String toString(){
         return this.cardId.toString();
     }
+
     public Integer getCardId() {
         return cardId;
     }
